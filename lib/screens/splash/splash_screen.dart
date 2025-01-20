@@ -3,6 +3,8 @@ import 'package:e_learning_app/screens/login/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../onboards/on_board_screen.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,8 +20,7 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration:
-          const Duration(seconds: 3),
+      duration: const Duration(seconds: 3),
       vsync: this,
     )..forward();
 
@@ -54,27 +55,26 @@ class _SplashScreenState extends State<SplashScreen>
         backgroundColor: Colors.blue,
         body: Center(
           child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/images/book.png',
-                      width: 120,
-                      height: 120,
-                      color: Colors.yellow,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "i-Learn",
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SvgPicture.asset(
+                'assets/icons/book_open.svg',
+                width: 120,
+                height: 120,
+              ),
+              Text(
+                "i-Learn",
+                style: GoogleFonts.patrickHand(
+                  fontSize: 40,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                  letterSpacing: 5,
                 ),
+              ),
+            ],
+          ),
         ),
-            ),
+      ),
     );
   }
 

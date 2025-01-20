@@ -1,7 +1,7 @@
+import 'package:e_learning_app/screens/main_page.dart';
 import '../register/register_screen.dart';
 import 'package:flutter/material.dart';
 import '../../common_widgets/custom_text_field.dart';
-import '../home/home_screen.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -15,10 +15,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
+  bool _isFormValid = false;
 
   bool _isPasswordVisible = false;
-
   final _formKey = GlobalKey<FormState>();
+
+  void _validateForm() {
+    setState(() {
+      _isFormValid = _formKey.currentState?.validate() ?? false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Form(
                   key: _formKey,
+                  onChanged: _validateForm,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Column(
@@ -84,48 +91,48 @@ class _LoginScreenState extends State<LoginScreen> {
                             return null;
                           },
                           onFieldSubmitted: (_) {
-                            if (_formKey.currentState!.validate()) {
-                              _login(
-                                _emailController.text,
-                                _passwordController.text,
-                              );
-                            }
                           },
                         ),
                         const SizedBox(height: 50),
                         Row(
                           children: [
-                            TextButton(
-                              onPressed: () {
+                            const SizedBox(width: 10,),
+                            const Text(
+                                "Sign in",
+                                style: TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 24),
+                              ),
+
+                            const Spacer(),
+                            GestureDetector(
+                              onTap: _isFormValid
+                                  ? () {
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const HomeScreen(),
+                                    builder: (context) =>
+                                    MainPage(),
                                   ),
                                 );
-                              },
-                              child: const Text(
-                                "Sign in",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 24,
+                              }
+                                  : null,
+                              child: Container(
+                                height: 90,
+                                width: 90,
+                                decoration: BoxDecoration(
+                                  color: _isFormValid
+                                      ? Colors.blue
+                                      : Colors.blue.withOpacity(0.5),
+                                  borderRadius: BorderRadius.circular(50),
                                 ),
-                              ),
-                            ),
-                            const Spacer(),
-                            Container(
-                              height: 90,
-                              width: 90,
-                              decoration: BoxDecoration(
-                                color: Colors.blue.withOpacity(0.5), // Reduced opacity
-                                borderRadius: BorderRadius.circular(50),
-                              ),
-                              child: const Center(
-                                child: Icon(
-                                  Icons.arrow_right_alt_outlined,
-                                  size: 60,
-                                  color: Colors.white,
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.arrow_right_alt_outlined,
+                                    size: 60,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
@@ -187,13 +194,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Future<void> _login(String email, String password) async {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
     );
   }
 }

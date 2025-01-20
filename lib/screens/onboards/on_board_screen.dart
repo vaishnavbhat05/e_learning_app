@@ -2,7 +2,6 @@ import 'package:e_learning_app/screens/login/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/onboards_data.dart';
-import '../home/home_screen.dart';
 
 class OnBoardingScreen extends StatefulWidget {
   const OnBoardingScreen({super.key});
@@ -85,7 +84,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
             ),
             const SizedBox(height: 20),
             Padding(
-              padding: const EdgeInsets.only(left: 40,right: 40),
+              padding: const EdgeInsets.only(left: 40, right: 40),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -94,40 +93,39 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                         (index) => indicatorForSlider(index: index),
                   ),
                   const Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      if (currentPage == onBoardData.length - 1) {
-                        _markOnboardingComplete(); // Mark onboarding as completed
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const HomeScreen(),
-                          ),
-                              (route) => false,
-                        );
-                      } else {
-                        _pageController.nextPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.ease,
-                        );
-                      }
-                    },
-                    child: Row(
-                      children: [
-                        Center(
+                  Row(
+                    children: [
+                      if (currentPage == onBoardData.length - 1) // Show text only on the last page
+                        const Padding(
+                          padding: EdgeInsets.only(right: 16.0),
                           child: Text(
-                            currentPage == onBoardData.length - 1
-                                ? "Get Started"
-                                : "",
-                            style: const TextStyle(
+                            "Get Started",
+                            style: TextStyle(
                               fontSize: 20,
                               color: Colors.black,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 40,),
-                        Container(
+                      GestureDetector(
+                        onTap: () {
+                          if (currentPage == onBoardData.length - 1) {
+                            _markOnboardingComplete(); // Mark onboarding as completed
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const LoginScreen(),
+                              ),
+                                  (route) => false,
+                            );
+                          } else {
+                            _pageController.nextPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.ease,
+                            );
+                          }
+                        },
+                        child: Container(
                           height: 90,
                           width: 90,
                           decoration: BoxDecoration(
@@ -135,14 +133,15 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                             borderRadius: BorderRadius.circular(50),
                           ),
                           child: const Center(
-                              child: Icon(
-                                Icons.arrow_right_alt_outlined,
-                                size: 60,
-                                color: Colors.white,
-                              )),
+                            child: Icon(
+                              Icons.arrow_right_alt_outlined,
+                              size: 60,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
