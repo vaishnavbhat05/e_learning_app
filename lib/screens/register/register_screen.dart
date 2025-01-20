@@ -27,8 +27,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  bool _isFormValid = false;
 
-  // Dispose the focus nodes to free resources
   @override
   void dispose() {
     _firstNameFocus.dispose();
@@ -36,6 +36,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _passwordFocus.dispose();
     _confirmPasswordFocus.dispose();
     super.dispose();
+  }
+
+  void _validateForm() {
+    setState(() {
+      _isFormValid = _formKey.currentState?.validate() ?? false;
+    });
   }
 
   @override
@@ -62,6 +68,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Form(
                   key: _formKey,
+                  onChanged: _validateForm,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Column(
@@ -126,37 +133,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         Row(
                           children: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                      const VerifyAccountScreen()),
-                                );
-                              },
-                              child: const Text(
+                            const SizedBox(width: 10,),
+                            const Text(
                                 "Sign up",
                                 style: TextStyle(
                                     color: Colors.black,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 24),
                               ),
-                            ),
                             const Spacer(),
-                            Container(
-                              height: 90,
-                              width: 90,
-                              decoration: BoxDecoration(
-                                color: Colors.blue.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(50),
-                              ),
-                              child: const Center(
+                            GestureDetector(
+                              onTap: _isFormValid
+                                  ? () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                    const VerifyAccountScreen(),
+                                  ),
+                                );
+                              }
+                                  : null,
+                              child: Container(
+                                height: 90,
+                                width: 90,
+                                decoration: BoxDecoration(
+                                  color: _isFormValid
+                                      ? Colors.blue
+                                      : Colors.blue.withOpacity(0.5),
+                                  borderRadius: BorderRadius.circular(50),
+                                ),
+                                child: const Center(
                                   child: Icon(
                                     Icons.arrow_right_alt_outlined,
                                     size: 60,
                                     color: Colors.white,
-                                  )),
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),

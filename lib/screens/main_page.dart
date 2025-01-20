@@ -57,10 +57,10 @@ class _MainPageState extends State<MainPage> {
               const IconThemeData(size: 28), // Customize unselected icons
           items: const [
             BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined), label: 'Home'),
+                icon: Icon(Icons.home_outlined,size: 35,), label: 'Home'),
             BottomNavigationBarItem(
-                icon: Icon(Icons.menu_book_outlined), label: 'Course'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_2_outlined), label: 'Profile'),
+                icon: Icon(Icons.menu_book_outlined,size: 35,), label: 'Course'),
+            BottomNavigationBarItem(icon: Icon(Icons.person_2_outlined,size: 35,), label: 'Profile'),
           ],
         ),
       ),
