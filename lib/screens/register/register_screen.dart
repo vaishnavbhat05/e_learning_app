@@ -1,5 +1,7 @@
+import 'package:e_learning_app/screens/register/provider/register_provider.dart';
 import 'package:flutter/material.dart';
-import '../verify_account/verify_account_screen.dart';
+import 'package:provider/provider.dart';
+import '../../data/model/register.dart';
 import '../../common_widgets/custom_text_field.dart';
 import '../../core/utils/validator.dart';
 import '../login/login_screen.dart';
@@ -12,13 +14,13 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
   TextEditingController();
 
-  final FocusNode _firstNameFocus = FocusNode();
+  final FocusNode _nameFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   final FocusNode _confirmPasswordFocus = FocusNode();
@@ -31,7 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    _firstNameFocus.dispose();
+    _nameFocus.dispose();
     _emailFocus.dispose();
     _passwordFocus.dispose();
     _confirmPasswordFocus.dispose();
@@ -55,7 +57,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             children: [
               Container(
-                height: 300,
+                height: 280,
                 width: double.infinity,
                 decoration: const BoxDecoration(
                   image: DecorationImage(
@@ -77,9 +79,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 20),
                         CustomTextField(
                           labelText: "Name",
-                          hintText: "Enter your first name",
-                          controller: _firstNameController,
-                          focusNode: _firstNameFocus,
+                          hintText: "Enter your name",
+                          controller: _nameController,
+                          focusNode: _nameFocus,
                           validator: Validator.name.call,
                           onFieldSubmitted: (_) {
                             FocusScope.of(context).requestFocus(_emailFocus);
@@ -128,39 +130,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           validator: (value) =>
                               Validator.confirmPassword(value, _passwordController),
                         ),
-                        const SizedBox(
-                          height: 20,
-                        ),
+                        const SizedBox(height: 20),
                         Row(
                           children: [
-                            const SizedBox(width: 10,),
+                            const SizedBox(width: 10),
                             const Text(
-                                "Sign up",
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 24),
+                              "Sign up",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 24,
                               ),
+                            ),
                             const Spacer(),
                             GestureDetector(
                               onTap: _isFormValid
                                   ? () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                    const VerifyAccountScreen(),
-                                  ),
+                                final registerModel = Register(
+                                  userName: _nameController.text,
+                                  email: _emailController.text,
+                                  password: _passwordController.text,
                                 );
+                                context.read<RegisterProvider>().registerUser(registerModel, context);
                               }
                                   : null,
                               child: Container(
                                 height: 90,
                                 width: 90,
                                 decoration: BoxDecoration(
-                                  color: _isFormValid
-                                      ? Colors.blue
-                                      : Colors.blue.withOpacity(0.5),
+                                  color: _isFormValid ? Colors.blue : Colors.blue.withOpacity(0.5),
                                   borderRadius: BorderRadius.circular(50),
                                 ),
                                 child: const Center(
@@ -174,15 +172,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(
-                          height: 30,
-                        ),
+                        const SizedBox(height: 30),
                         TextButton(
                           onPressed: () {
-                            Navigator.push(
+                            Navigator.pushReplacement(
                               context,
-                              MaterialPageRoute(
-                                  builder: (context) => const LoginScreen()),
+                              MaterialPageRoute(builder: (context) => const LoginScreen()),
                             );
                           },
                           child: const Column(
@@ -190,10 +185,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             children: [
                               Text.rich(
                                 TextSpan(
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    color: Colors.grey,
-                                  ),
+                                  style: TextStyle(fontSize: 20, color: Colors.grey),
                                   children: [
                                     TextSpan(text: "Already have an account? "),
                                     TextSpan(

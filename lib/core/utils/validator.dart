@@ -3,8 +3,8 @@ import 'package:form_field_validator/form_field_validator.dart';
 
 class Validator {
   static final name = MultiValidator([
-    RequiredValidator(errorText: "Please enter your first name"),
-    PatternValidator(r"^[a-zA-Z]+$", errorText: "Enter a valid first Name"),
+    RequiredValidator(errorText: "Please enter your name"),
+    PatternValidator(r"^[a-zA-Z\s]+$", errorText: "Enter a valid Name"),
   ]);
 
   static final email = MultiValidator([

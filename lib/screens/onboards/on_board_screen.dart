@@ -1,7 +1,7 @@
 import 'package:e_learning_app/screens/login/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../models/onboards_data.dart';
+import '/data/model/onboards_data.dart';
 
 class OnBoardingScreen extends StatefulWidget {
   const OnBoardingScreen({super.key});

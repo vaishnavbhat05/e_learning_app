@@ -1,5 +1,4 @@
 import 'package:e_learning_app/screens/main_page.dart';
-import 'package:e_learning_app/screens/profile/profile_screen.dart';
 import 'package:flutter/material.dart';
 
 class ResultDetailsScreen extends StatelessWidget {
@@ -26,7 +25,8 @@ class ResultDetailsScreen extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MainPage(index: 2), // Navigate to Profile tab
+                    builder: (context) =>
+                        MainPage(index: 2), // Navigate to Profile tab
                   ),
                 );
               },
@@ -137,7 +137,6 @@ class ResultDetailsScreen extends StatelessWidget {
                       rightAnswers: 35,
                       totalQuestions: 50,
                       score: 75,
-                      scoreColor: Colors.green,
                     ),
                     _buildResultCard(
                       subject: "BIOLOGY",
@@ -146,7 +145,6 @@ class ResultDetailsScreen extends StatelessWidget {
                       rightAnswers: 40,
                       totalQuestions: 50,
                       score: 90,
-                      scoreColor: Colors.green,
                     ),
                     _buildResultCard(
                       subject: "PHYSICS",
@@ -155,7 +153,6 @@ class ResultDetailsScreen extends StatelessWidget {
                       rightAnswers: 18,
                       totalQuestions: 50,
                       score: 20,
-                      scoreColor: Colors.red,
                     ),
                   ],
                 ),
@@ -174,8 +171,8 @@ class ResultDetailsScreen extends StatelessWidget {
     required int rightAnswers,
     required int totalQuestions,
     required int score,
-    required Color scoreColor,
   }) {
+    Color color = _getStatColor(score);
     return SizedBox(
       width: 200,
       height: 270,
@@ -268,14 +265,14 @@ class ResultDetailsScreen extends StatelessWidget {
                           text: '$score',
                           style: TextStyle(
                             fontSize: 50,
-                            color: scoreColor, // Text color
+                            color: color, // Text color
                           ),
                         ),
                         TextSpan(
                           text: '%',
                           style: TextStyle(
                             fontSize: 30,
-                            color: scoreColor, // Different color for %
+                            color: color, // Different color for %
                           ),
                         ),
                       ],
@@ -288,5 +285,19 @@ class ResultDetailsScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _getStatColor(int value) {
+    if (value < 30) {
+      return Colors.red.shade600;
+    } else if (value >= 30 && value <= 50) {
+      return Colors.orange.shade600;
+    } else if (value > 50 && value <= 75) {
+      return Colors.yellow.shade600;
+    } else if (value > 75 && value < 100) {
+      return Colors.green.shade600;
+    } else {
+      return Colors.green.shade600; // Darker green for 100%
+    }
   }
 }
