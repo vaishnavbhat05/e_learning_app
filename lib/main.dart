@@ -1,8 +1,7 @@
 import 'package:e_learning_app/screens/login/provider/login_provider.dart';
+import 'package:e_learning_app/screens/main_page.dart';
 import 'package:e_learning_app/screens/verify_account/provider/verify_account_provider.dart';
-
 import 'screens/register/provider/register_provider.dart';
-import '../screens/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -31,7 +30,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const SplashScreen(),
+       // home: const LoginScreen(),
+      home: MainPage(),
     );
   }
 }

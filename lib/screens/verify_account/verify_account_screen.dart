@@ -4,20 +4,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/model/register.dart';
 import '../register/provider/register_provider.dart';
 
 class VerifyAccountScreen extends StatefulWidget {
-  final String name;
-  final String email;
-  final String password;
-
   const VerifyAccountScreen({
     super.key,
-    required this.name,
-    required this.email,
-    required this.password,
   });
 
   @override
@@ -30,6 +24,9 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
       List.generate(4, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
   bool _allFieldsFilled = false;
+  String? userName;
+  String? email;
+  String? password;
 
   @override
   void initState() {
@@ -49,14 +46,22 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
       print('All fields filled: $_allFieldsFilled');
     }
   }
+  Future<void> _getUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userName = prefs.getString('userName');
+      email = prefs.getString('email');
+      password = prefs.getString('password');
+    });
+  }
   void _resendOtp() async {
     final provider = Provider.of<RegisterProvider>(context, listen: false);
 
     // Create a new Register model with the existing details
     final registerModel = Register(
-      userName: widget.name,
-      email: widget.email,
-      password: widget.password,
+      userName: userName!,
+      email: email!,
+      password: password!,
     );
 
     try {

@@ -1,28 +1,40 @@
-import 'package:e_learning_app/screens/forgot_password/forgot_password_screen.dart';
-import 'package:e_learning_app/screens/login/provider/login_provider.dart';
+import 'package:e_learning_app/screens/verify_account/verify_account_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../data/model/login.dart';
-import '../register/register_screen.dart';
 import '../../common_widgets/custom_text_field.dart';
+import '../../core/utils/validator.dart';
+import '../login/login_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({
+    super.key,
+  });
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
+  final FocusNode _confirmPasswordFocus = FocusNode();
   bool _isFormValid = false;
 
   bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
+    _confirmPasswordFocus.dispose();
+    super.dispose();
+  }
 
   void _validateForm() {
     setState(() {
@@ -34,19 +46,39 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.transparent,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.blue,
+              size: 40,
+            ),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const LoginScreen(), // Navigate to Profile tab
+                ),
+              );
+            },
+          ),
+        ),
         backgroundColor: Colors.white,
         body: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                height: 300,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage("assets/images/login_page.png"),
-                    fit: BoxFit.cover,
-                  ),
+              const SizedBox(
+                height: 50,
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 42),
+                child: Text(
+                  "Forgot Password",
+                  style: TextStyle(fontSize: 36),
                 ),
               ),
               Padding(
@@ -59,8 +91,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const SizedBox(
+                          height: 60,
+                        ),
                         CustomTextField(
-                          labelText: "Mobile / Email",
+                          labelText: "Email",
                           hintText: "Enter your email",
                           controller: _emailController,
                           focusNode: _emailFocus,
@@ -76,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 16),
                         CustomTextField(
-                          labelText: "Password",
+                          labelText: "New Password",
                           hintText: "Enter your password",
                           controller: _passwordController,
                           focusNode: _passwordFocus,
@@ -93,14 +128,34 @@ class _LoginScreenState extends State<LoginScreen> {
                             }
                             return null;
                           },
-                          onFieldSubmitted: (_) {},
+                          onFieldSubmitted: (_) {
+                            FocusScope.of(context)
+                                .requestFocus(_confirmPasswordFocus);
+                          },
                         ),
-                        const SizedBox(height: 50),
+                        const SizedBox(height: 16),
+                        CustomTextField(
+                          labelText: "Confirm Password",
+                          hintText: "Re-enter your password",
+                          controller: _confirmPasswordController,
+                          focusNode: _confirmPasswordFocus,
+                          obscureText: !_isConfirmPasswordVisible,
+                          isPasswordField: true,
+                          suffixIconAction: () {
+                            setState(() {
+                              _isConfirmPasswordVisible =
+                                  !_isConfirmPasswordVisible;
+                            });
+                          },
+                          validator: (value) => Validator.confirmPassword(
+                              value, _passwordController),
+                        ),
+                        const SizedBox(height: 100),
                         Row(
                           children: [
                             const SizedBox(width: 10),
                             const Text(
-                              "Sign in",
+                              "Reset Password",
                               style: TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
@@ -111,17 +166,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             GestureDetector(
                               onTap: _isFormValid
                                   ? () {
-                                      // Create LoginModel
-                                      final loginModel = Login(
-                                        email: _emailController.text,
-                                        password: _passwordController.text,
-                                      );
-
-                                      // Call loginUser API
-                                      context.read<LoginProvider>().loginUser(
-                                            loginModel,
-                                            context,
-                                          );
+                                      Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const VerifyAccountScreen()));
                                     }
                                   : null,
                               child: Container(
@@ -143,59 +192,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 60),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const ForgotPasswordScreen()));
-                          },
-                          child: const Text(
-                            "Forgot Password",
-                            style: TextStyle(
-                              color: Colors.blue,
-                              fontSize: 20,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 50),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const RegisterScreen(),
-                              ),
-                            );
-                          },
-                          child: const Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text.rich(
-                                TextSpan(
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    color: Colors.grey,
-                                  ),
-                                  children: [
-                                    TextSpan(text: "Don't have an account? "),
-                                    TextSpan(
-                                      text: "Sign up\n",
-                                      style: TextStyle(
-                                        color: Colors.blue,
-                                        fontWeight: FontWeight.bold,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
                       ],
                     ),

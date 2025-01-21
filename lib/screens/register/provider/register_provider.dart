@@ -7,6 +7,7 @@ import '../../../data/api/endpoints.dart'; // Import Endpoints class
 import '../../verify_account/verify_account_screen.dart';
 
 class RegisterProvider with ChangeNotifier {
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -39,9 +40,6 @@ class RegisterProvider with ChangeNotifier {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => VerifyAccountScreen(
-            name: model.userName,
-            email: model.email,
-            password: model.password,
           ),),
         );
       } else {
