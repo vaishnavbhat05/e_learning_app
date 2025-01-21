@@ -1,21 +1,32 @@
+import 'package:e_learning_app/screens/register/register_screen.dart';
+import 'package:e_learning_app/screens/verify_account/provider/verify_account_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import '../login/login_screen.dart';
-import '../register/register_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../data/model/register.dart';
+import '../register/provider/register_provider.dart';
 
 class VerifyAccountScreen extends StatefulWidget {
-  const VerifyAccountScreen({super.key});
+  const VerifyAccountScreen({
+    super.key,
+  });
 
   @override
   State<VerifyAccountScreen> createState() => _VerifyAccountScreenState();
 }
 
+
 class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
   final List<TextEditingController> _controllers =
-  List.generate(4, (_) => TextEditingController());
+      List.generate(4, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
   bool _allFieldsFilled = false;
+  String? userName;
+  String? email;
+  String? password;
 
   @override
   void initState() {
@@ -27,13 +38,44 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
 
   void _checkAllFieldsFilled() {
     setState(() {
-      _allFieldsFilled = _controllers.every((controller) => controller.text.isNotEmpty);
+      _allFieldsFilled =
+          _controllers.every((controller) => controller.text.isNotEmpty);
     });
     // Debugging output to verify state changes
     if (kDebugMode) {
       print('All fields filled: $_allFieldsFilled');
     }
   }
+  Future<void> _getUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userName = prefs.getString('userName');
+      email = prefs.getString('email');
+      password = prefs.getString('password');
+    });
+  }
+  void _resendOtp() async {
+    final provider = Provider.of<RegisterProvider>(context, listen: false);
+
+    // Create a new Register model with the existing details
+    final registerModel = Register(
+      userName: userName!,
+      email: email!,
+      password: password!,
+    );
+
+    try {
+      await provider.registerUser(registerModel, context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('OTP resent successfully!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to resend OTP. Please try again.')),
+      );
+    }
+  }
+
 
   @override
   void dispose() {
@@ -47,12 +89,17 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
     super.dispose();
   }
 
-  void _onVerifyPressed() {
+  void _onVerifyPressed() async {
     if (_allFieldsFilled) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
+      // Concatenate OTP from the controllers
+      String otp = _controllers.map((controller) => controller.text).join();
+
+      // Get the provider to call verifyAccount()
+      final provider =
+          Provider.of<VerifyAccountProvider>(context, listen: false);
+
+      // Call the verifyAccount function from the provider
+      await provider.verifyAccount(otp, context);
     } else {
       if (kDebugMode) {
         print('Please fill all fields before verifying.');
@@ -86,14 +133,13 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
                   child: TextButton(
                     onPressed: () {
                       Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const RegisterScreen()),
-                      );
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const RegisterScreen()));
                     },
                     child: const Text(
                       '',
-                      style: TextStyle(color: Colors.black), // Button text style
+                      style: TextStyle(color: Colors.black),
                     ),
                   ),
                 ),
@@ -114,11 +160,10 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           border: Border.all(
-                            color: _focusNodes[index].hasFocus
-                                ? Colors.blue
-                                : Colors.transparent,
-                            width: 2
-                          ),
+                              color: _focusNodes[index].hasFocus
+                                  ? Colors.blue
+                                  : Colors.transparent,
+                              width: 2),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Center(
@@ -128,7 +173,7 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
                             keyboardType: TextInputType.number,
                             textAlign: TextAlign.center,
                             maxLength: 1,
-                            cursorWidth: 1, // Set the width of the cursor
+                            cursorWidth: 1,
                             cursorHeight: 32,
                             cursorColor: _focusNodes[index].hasFocus
                                 ? Colors.blue
@@ -174,8 +219,7 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
                               ),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
-                                  // Handle resend logic here
-                                  print('Resend tapped');
+                                  _resendOtp();
                                 },
                             ),
                           ],
@@ -195,7 +239,7 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
                           fontSize: 24,
                         ),
                       ),
-                      const SizedBox(width: 165,),
+                      const SizedBox(width: 165),
                       GestureDetector(
                         onTap: _onVerifyPressed,
                         child: Container(

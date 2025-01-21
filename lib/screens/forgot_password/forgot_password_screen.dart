@@ -1,39 +1,35 @@
-import 'package:e_learning_app/screens/register/provider/register_provider.dart';
+import 'package:e_learning_app/screens/verify_account/verify_account_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../data/model/register.dart';
 import '../../common_widgets/custom_text_field.dart';
 import '../../core/utils/validator.dart';
 import '../login/login_screen.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({
+    super.key,
+  });
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
-  final TextEditingController _nameController = TextEditingController();
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
-  TextEditingController();
+      TextEditingController();
 
-  final FocusNode _nameFocus = FocusNode();
   final FocusNode _emailFocus = FocusNode();
   final FocusNode _passwordFocus = FocusNode();
   final FocusNode _confirmPasswordFocus = FocusNode();
-
-  final _formKey = GlobalKey<FormState>();
+  bool _isFormValid = false;
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
-  bool _isFormValid = false;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
-    _nameFocus.dispose();
     _emailFocus.dispose();
     _passwordFocus.dispose();
     _confirmPasswordFocus.dispose();
@@ -50,20 +46,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.transparent,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.blue,
+              size: 40,
+            ),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const LoginScreen(), // Navigate to Profile tab
+                ),
+              );
+            },
+          ),
+        ),
         backgroundColor: Colors.white,
-        resizeToAvoidBottomInset: true,
         body: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                height: 280,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage("assets/images/register_page.png"),
-                    fit: BoxFit.cover,
-                  ),
+              const SizedBox(
+                height: 50,
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 42),
+                child: Text(
+                  "Forgot Password",
+                  style: TextStyle(fontSize: 36),
                 ),
               ),
               Padding(
@@ -76,29 +91,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 20),
-                        CustomTextField(
-                          labelText: "Name",
-                          hintText: "Enter your name",
-                          controller: _nameController,
-                          focusNode: _nameFocus,
-                          validator: Validator.name.call,
-                          onFieldSubmitted: (_) {
-                            FocusScope.of(context).requestFocus(_emailFocus);
-                          },
+                        const SizedBox(
+                          height: 60,
                         ),
                         CustomTextField(
-                          labelText: "Mobile / Email",
+                          labelText: "Email",
                           hintText: "Enter your email",
                           controller: _emailController,
                           focusNode: _emailFocus,
-                          validator: Validator.email.call,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your email';
+                            }
+                            return null;
+                          },
                           onFieldSubmitted: (_) {
                             FocusScope.of(context).requestFocus(_passwordFocus);
                           },
                         ),
+                        const SizedBox(height: 16),
                         CustomTextField(
-                          labelText: "Create Password",
+                          labelText: "New Password",
                           hintText: "Enter your password",
                           controller: _passwordController,
                           focusNode: _passwordFocus,
@@ -109,11 +122,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               _isPasswordVisible = !_isPasswordVisible;
                             });
                           },
-                          validator: Validator.password.call,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your password';
+                            }
+                            return null;
+                          },
                           onFieldSubmitted: (_) {
-                            FocusScope.of(context).requestFocus(_confirmPasswordFocus);
+                            FocusScope.of(context)
+                                .requestFocus(_confirmPasswordFocus);
                           },
                         ),
+                        const SizedBox(height: 16),
                         CustomTextField(
                           labelText: "Confirm Password",
                           hintText: "Re-enter your password",
@@ -124,18 +144,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           suffixIconAction: () {
                             setState(() {
                               _isConfirmPasswordVisible =
-                              !_isConfirmPasswordVisible;
+                                  !_isConfirmPasswordVisible;
                             });
                           },
-                          validator: (value) =>
-                              Validator.confirmPassword(value, _passwordController),
+                          validator: (value) => Validator.confirmPassword(
+                              value, _passwordController),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 100),
                         Row(
                           children: [
                             const SizedBox(width: 10),
                             const Text(
-                              "Sign up",
+                              "Reset Password",
                               style: TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
@@ -146,19 +166,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             GestureDetector(
                               onTap: _isFormValid
                                   ? () {
-                                final registerModel = Register(
-                                  userName: _nameController.text,
-                                  email: _emailController.text,
-                                  password: _passwordController.text,
-                                );
-                                context.read<RegisterProvider>().registerUser(registerModel, context);
-                              }
+                                      Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const VerifyAccountScreen()));
+                                    }
                                   : null,
                               child: Container(
                                 height: 90,
                                 width: 90,
                                 decoration: BoxDecoration(
-                                  color: _isFormValid ? Colors.blue : Colors.blue.withOpacity(0.5),
+                                  color: _isFormValid
+                                      ? Colors.blue
+                                      : Colors.blue.withOpacity(0.5),
                                   borderRadius: BorderRadius.circular(50),
                                 ),
                                 child: const Center(
@@ -171,35 +192,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 30),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => const LoginScreen()),
-                            );
-                          },
-                          child: const Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text.rich(
-                                TextSpan(
-                                  style: TextStyle(fontSize: 20, color: Colors.grey),
-                                  children: [
-                                    TextSpan(text: "Already have an account? "),
-                                    TextSpan(
-                                      text: "Sign in\n",
-                                      style: TextStyle(
-                                          color: Colors.blue,
-                                          fontWeight: FontWeight.bold,
-                                          decoration: TextDecoration.underline),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
                       ],
                     ),

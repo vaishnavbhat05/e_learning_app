@@ -1,7 +1,11 @@
-import 'package:e_learning_app/screens/main_page.dart';
-import '../register/register_screen.dart';
+import 'package:e_learning_app/screens/forgot_password/forgot_password_screen.dart';
+import 'package:e_learning_app/screens/login/provider/login_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../data/model/login.dart';
+import '../register/register_screen.dart';
 import '../../common_widgets/custom_text_field.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -28,7 +32,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -42,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 decoration: const BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage("assets/images/login_page.png"),
-                    fit: BoxFit.cover, // Ensures the image covers the container
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
@@ -79,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           focusNode: _passwordFocus,
                           obscureText: !_isPasswordVisible,
                           isPasswordField: true,
-                          suffixIconAction:() {
+                          suffixIconAction: () {
                             setState(() {
                               _isPasswordVisible = !_isPasswordVisible;
                             });
@@ -90,33 +93,36 @@ class _LoginScreenState extends State<LoginScreen> {
                             }
                             return null;
                           },
-                          onFieldSubmitted: (_) {
-                          },
+                          onFieldSubmitted: (_) {},
                         ),
                         const SizedBox(height: 50),
                         Row(
                           children: [
-                            const SizedBox(width: 10,),
+                            const SizedBox(width: 10),
                             const Text(
-                                "Sign in",
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 24),
+                              "Sign in",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 24,
                               ),
-
+                            ),
                             const Spacer(),
                             GestureDetector(
                               onTap: _isFormValid
                                   ? () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                    MainPage(),
-                                  ),
-                                );
-                              }
+                                      // Create LoginModel
+                                      final loginModel = Login(
+                                        email: _emailController.text,
+                                        password: _passwordController.text,
+                                      );
+
+                                      // Call loginUser API
+                                      context.read<LoginProvider>().loginUser(
+                                            loginModel,
+                                            context,
+                                          );
+                                    }
                                   : null,
                               child: Container(
                                 height: 90,
@@ -140,7 +146,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 60),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const ForgotPasswordScreen()));
+                          },
                           child: const Text(
                             "Forgot Password",
                             style: TextStyle(

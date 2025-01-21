@@ -52,44 +52,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ] else ...[
               Padding(
-                padding: const EdgeInsets.only(top: 15,right: 10),
+                padding: const EdgeInsets.only(top: 15, right: 10),
                 child: IconButton(
-                  icon: const Icon(Icons.more_vert, color: Colors.blue,size: 40,),
+                  icon:
+                      const Icon(Icons.more_vert, color: Colors.blue, size: 40),
                   onPressed: () async {
                     final value = await showMenu<String>(
                       color: Colors.white,
                       context: context,
-                      position:
-                          const RelativeRect.fromLTRB(100.0, 70.0, 20.0, 20.0),
+                      position: const RelativeRect.fromLTRB(
+                          100.0, 70.0, 30.0, 0.0), // Adjust position
                       items: [
                         const PopupMenuItem<String>(
                           value: 'edit',
-                          height: 60,
-                          child: Row(
-                            children: [
-                              Icon(Icons.edit, color: Colors.black),
-                              SizedBox(width: 20),
-                              Text('Edit'),
-                            ],
+                          height: 70, // Adjust the height of each item
+                          child: SizedBox(
+                            width: 100, // Increase width of the menu
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Icon(Icons.edit, color: Colors.black),
+                                SizedBox(width: 15),
+                                Text(
+                                  'Edit',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         const PopupMenuItem<String>(
                           value: 'logout',
-                          height: 60,
-                          child: Row(
-                            children: [
-                              Icon(Icons.logout, color: Colors.black),
-                              SizedBox(width: 20),
-                              Text('Logout'),
-                            ],
+                          height: 70,
+                          child: SizedBox(
+                            width: 100,
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Icon(Icons.logout, color: Colors.black),
+                                SizedBox(width: 15),
+                                Text(
+                                  'Logout',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                       elevation: 8.0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
+                        borderRadius:
+                            BorderRadius.circular(15.0), // Rounded corners
                       ),
                     );
+
                     if (value == 'edit') {
                       setState(() {
                         _isEditing = true; // Enable edit mode
@@ -167,14 +188,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        _buildStatCard("30%", "Chapters\nCompleted", Colors.red[200]!),
-        _buildStatCard("70%", "Average\nTest Score", Colors.yellow[600]!),
-        _buildStatCard("75%", "Highest\nTest Score", Colors.orange[300]!),
+        _buildStatCard("30", "Chapters\nCompleted"),
+        _buildStatCard("70", "Average\nTest Score"),
+        _buildStatCard("75", "Highest\nTest Score"),
       ],
     );
   }
 
-  Widget _buildStatCard(String value, String label, Color color) {
+  Widget _buildStatCard(String value, String label) {
+    int numericValue = int.tryParse(value) ?? 0;
+    Color color = _getStatColor(numericValue);
+
     return Padding(
       padding: const EdgeInsets.all(5.0),
       child: Card(
@@ -184,11 +208,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 30,
-                  color: color,
+              RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: value,
+                      style: TextStyle(
+                        fontSize: 32,
+                        color: color, // Dynamic text color
+                      ),
+                    ),
+                    TextSpan(
+                      text: "%",
+                      style: TextStyle(
+                        fontSize: 24, // Smaller font size for %
+                        fontWeight: FontWeight.bold,
+                        color: color, // Dynamic color for %
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 5),
@@ -207,6 +245,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Color _getStatColor(int value) {
+    if (value < 30) {
+      return Colors.red.shade600;
+    } else if (value >= 30 && value <= 50) {
+      return Colors.orange.shade600;
+    } else if (value > 50 && value <= 75) {
+      return Colors.yellow.shade600;
+    } else if (value > 75 && value < 100) {
+      return Colors.green.shade600;
+    } else {
+      return Colors.green.shade600; // Darker green for 100%
+    }
+  }
+
+
   Widget _buildSettings() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 10),
@@ -217,11 +270,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(width: 5,),
+              const SizedBox(
+                width: 5,
+              ),
               SizedBox(
                 width: 23,
                 height: 23,
-                child: Image.asset('assets/icons/result_icon.png',fit: BoxFit.contain,),
+                child: Image.asset(
+                  'assets/icons/result_icon.png',
+                  fit: BoxFit.contain,
+                ),
               ),
               const SizedBox(width: 20),
               const Text(
@@ -234,7 +292,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Spacer(),
               IconButton(
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ResultDetailsScreen()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ResultDetailsScreen()));
                 },
                 icon: const Icon(
                   Icons.arrow_forward_ios,
@@ -245,7 +306,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const Padding(
-            padding: EdgeInsets.only(left: 50), // Adjust left padding for alignment
+            padding:
+                EdgeInsets.only(left: 50), // Adjust left padding for alignment
             child: Text(
               "Check the test scores you have \nattempted.",
               style: TextStyle(color: Colors.grey),
@@ -287,7 +349,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           const Padding(
-            padding: EdgeInsets.only(left: 50), // Adjust left padding for alignment
+            padding:
+                EdgeInsets.only(left: 50), // Adjust left padding for alignment
             child: Text(
               "Turn off the notification if you don’t \nwant to receive.",
               style: TextStyle(color: Colors.grey),

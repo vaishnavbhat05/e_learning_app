@@ -1,7 +1,9 @@
-import 'package:e_learning_app/screens/lessons/lessons_tests_screen.dart';
+import 'dart:async';
 import 'package:e_learning_app/screens/tests/result_screen.dart';
 import 'package:e_learning_app/screens/tests/test_questions_screen.dart';
 import 'package:flutter/material.dart';
+
+import '../lessons/lessons_tests_screen.dart';
 
 class TestScreen extends StatefulWidget {
   const TestScreen({super.key});
@@ -9,57 +11,72 @@ class TestScreen extends StatefulWidget {
   @override
   State<TestScreen> createState() => _TestScreenState();
 }
-
 class _TestScreenState extends State<TestScreen> {
   int _selectedOption = -1; // To keep track of the selected option
+  int currentPage = 1; // Current page
+  int totalPages = 4; // Total number of pages
+  final PageController _pageController = PageController();
+  late Timer _timer;
+  int _remainingTime = 300; // Start from 300 seconds (5 minutes)
+  bool _modalShown = false; // Track if the submit modal has been shown
+
+  final ValueNotifier<double> _dividerProgress = ValueNotifier<double>(0.0);
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
 
   Widget _buildOptionCard(String option, String text, int index) {
     bool isSelected = _selectedOption == index;
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedOption = index; // Update the selected option
+          // If the same option is clicked again, unselect it
+          _selectedOption = isSelected ? -1 : index;
         });
       },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8.0),
         width: 360,
-        height: 80,
+        height: 70,
         decoration: BoxDecoration(
-          // Highlight selected card
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color:
-                isSelected ? Colors.blue : Colors.grey.shade300, // Border color
+            color: isSelected ? Colors.blue : Colors.white,
+            width: 2, // Border color
           ),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
-              color: Colors.grey.shade200,
-              blurRadius: 8,
-              offset: const Offset(0, 4), // Subtle shadow
+              color: Colors.white, // Subtle shadow
             ),
           ],
         ),
         child: Row(
           children: [
-            const SizedBox(
-              width: 20,
-            ),
+            const SizedBox(width: 20),
             Text(
               option,
               style: TextStyle(
                 color: isSelected ? Colors.blue : Colors.black45, // Text color
                 fontSize: 18,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
-            const SizedBox(
-              width: 10,
-            ),
+            const SizedBox(width: 10),
             Text(
               text,
               style: TextStyle(
                 color: isSelected ? Colors.blue : Colors.black45, // Text color
                 fontSize: 18,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
           ],
@@ -68,260 +85,386 @@ class _TestScreenState extends State<TestScreen> {
     );
   }
 
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_remainingTime > 0) {
+        setState(() {
+          _remainingTime--;
+        });
+        _dividerProgress.value = _remainingTime / 300;
+      } else {
+        _timer.cancel(); // Stop the timer when time is up
+      }
+    });
+  }
+
+  String _formatTime(int seconds) {
+    int minutes = seconds ~/ 60;
+    seconds = seconds % 60;
+    return '${minutes.toString().padLeft(2)}m';
+  }
+  void goToPage(int page) {
+    if (page > 0 && page <= totalPages) {
+      _pageController.animateToPage(page - 1,
+          duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+      setState(() {
+        currentPage = page;
+      });
+
+      if (page == totalPages) {
+        _showSubmitModal();
+      }
+    }
+  }
+
+  void _showSubmitModal() {
+    if (_modalShown) return; // Prevent showing the modal multiple times
+    _modalShown = true;
+
+    showModalBottomSheet(
+      backgroundColor: Colors.white,
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 280, maxWidth: 340),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Center(
+                  child: Column(
+                    children: [
+                      SizedBox(height: 20),
+                      Text(
+                        'Submit Test',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Padding(
+                        padding: EdgeInsets.only(left: 50, right: 50),
+                        child: Text(
+                          'You have unattempted questions, would you like to submit the test?',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 21,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 60,
+                      width: 140,
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          side: const BorderSide(color: Colors.blue, width: 2),
+                        ),
+                        child: const Text(
+                          'No',
+                          style: TextStyle(color: Colors.blue, fontSize: 18),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 30),
+                    SizedBox(
+                      height: 60,
+                      width: 140,
+                      child: Material(
+                        elevation: 6,
+                        shadowColor: Colors.blue[400],
+                        borderRadius: BorderRadius.circular(15),
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ResultScreen(),
+                              ),
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            side: const BorderSide(color: Colors.blue),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Yes',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 18),
+                              ),
+                              const SizedBox(width: 20),
+                              CircleAvatar(
+                                backgroundColor: Colors.blue[700],
+                                radius: 12,
+                                child: const Icon(Icons.arrow_right_alt_sharp,
+                                    color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    ).whenComplete(() {
+      _modalShown = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.grey[100],
         appBar: AppBar(
           automaticallyImplyLeading: false,
           backgroundColor: Colors.transparent,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
-              child: IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const LessonTestScreen()),
-                  );
-                },
-                icon: const Icon(
-                  Icons.close,
-                  color: Colors.blue,
-                  size: 40,
-                ),
-              ),
-            ),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-              child: IconButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const TestQuestionsScreen()),
-                  );
-                },
-                icon: const Icon(
-                  Icons.insert_page_break_outlined,
-                  color: Colors.blue,
-                  size: 30,
-                ),
-              ),
-            ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          elevation: 0,
+          toolbarHeight: 72,
+          flexibleSpace: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 22.0),
-                    child: Text(
-                      'What does the feet in image below imply?',
-                      style:
-                          TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Center(
-                  child: Container(
-                    height: 200,
-                    width: 360,
-                    decoration: BoxDecoration(
-                      color: Colors.black38,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Option cards
-              Center(
-                child: Column(
-                  children: [
-                    _buildOptionCard("A.", "Option 1", 0),
-                    _buildOptionCard("B.", "Option 2", 1),
-                    _buildOptionCard("C.", "Option 3", 2),
-                    _buildOptionCard("D.", "Option 4", 3),
-                  ],
-                ),
-              ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 15, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: IconButton(
                       onPressed: () {
-                        showModalBottomSheet(
-                          backgroundColor: Colors.white,
-                          context: context,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.vertical(top: Radius.circular(20)),
-                          ),
-                          builder: (BuildContext context) {
-                            return Padding(
-                              padding: const EdgeInsets.all(20.0),
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                    minHeight: 280,
-                                    maxWidth: 340), // Limit the height
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    const Center(
-                                      child: Column(
-                                        children: [
-                                          SizedBox(height: 20,),
-                                          Text(
-                                            'Submit Test',
-                                            style: TextStyle(
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          SizedBox(height: 10),
-                                          Padding(
-                                            padding: EdgeInsets.only(
-                                                left: 50, right: 50),
-                                            child: Text(
-                                              'You have unattempted questions, would you like to submit the test?',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                fontSize:
-                                                    21, // Slightly smaller text size
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 40),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        SizedBox(
-                                          height: 60, // Increased height
-                                          width: 140, // Reduced width
-                                          child: OutlinedButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            style: OutlinedButton.styleFrom(
-                                              backgroundColor: Colors
-                                                  .transparent, // Transparent background
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                              ),
-                                              side: const BorderSide(
-                                                  color: Colors.blue,
-                                                  width: 2), // Blue border
-                                            ),
-                                            child: const Text(
-                                              'No',
-                                              style: TextStyle(
-                                                  color: Colors.blue,
-                                                  fontSize: 18),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 30),
-                                        SizedBox(
-                                          height: 60, // Increased height
-                                          width: 140, // Reduced width
-                                          child: Material(
-                                            elevation:
-                                                6, // Elevation for shadow
-                                            shadowColor: Colors
-                                                .blue[400], // Shadow color
-                                            borderRadius: BorderRadius.circular(
-                                                15), // Matches button border radius
-                                            child: OutlinedButton(
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                                Navigator.pushReplacement(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                       const ResultScreen(),
-                                                  ),
-                                                );
-                                              },
-                                              style: OutlinedButton.styleFrom(
-                                                backgroundColor: Colors
-                                                    .blue, // Blue background
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(15),
-                                                ),
-                                                side: const BorderSide(
-                                                    color: Colors
-                                                        .blue), // Blue border
-                                              ),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .center, // Centers content
-                                                children: [
-                                                  const SizedBox(width: 8),
-                                                  const Text(
-                                                    'Yes',
-                                                    style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 18),
-                                                  ),
-                                                  const SizedBox(width: 20),
-                                                  CircleAvatar(
-                                                    backgroundColor:
-                                                        Colors.blue[700],
-                                                    radius: 12,
-                                                    child: const Icon(
-                                                        Icons
-                                                            .arrow_right_alt_sharp,
-                                                        color: Colors.white),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const LessonTestScreen()),
                         );
                       },
                       icon: const Icon(
-                        Icons.arrow_forward_rounded,
+                        Icons.close,
                         color: Colors.blue,
                         size: 40,
                       ),
                     ),
                   ),
+                  Flexible(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.alarm,
+                          color: Colors.blue,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          '${_formatTime(_remainingTime)} Remaining',
+                          style: TextStyle(fontSize: 16, color: Colors.blue),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 15, vertical: 4),
+                    child: IconButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const TestQuestionsScreen()),
+                        );
+                      },
+                      icon: const Icon(
+                        Icons.insert_page_break_outlined,
+                        color: Colors.blue,
+                        size: 30,
+                      ),
+                    ),
+                  ),
                 ],
-              )
+              ),
+              ValueListenableBuilder<double>(
+                valueListenable: _dividerProgress,
+                builder: (context, progress, _) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: LinearProgressIndicator(
+                      value: 1- progress,
+                      backgroundColor: Colors.grey.shade300,
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                          Colors.blue),
+                      minHeight: 3,
+                    ),
+                  );
+                },
+              ),
             ],
           ),
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: totalPages,
+                onPageChanged: (index) {
+                  setState(() {
+                    currentPage = index + 1;
+                  });
+
+                  // Show the submit modal when on the last page
+                  if (index == totalPages - 1) {
+                    _showSubmitModal();
+                  }
+                },
+                itemBuilder: (context, index) {
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 22.0),
+                              child: Text(
+                                'What does the feet in image below imply?',
+                                style: TextStyle(
+                                    fontSize: 26, fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Center(
+                            child: Container(
+                              height: 200,
+                              width: 360,
+                              decoration: BoxDecoration(
+                                color: Colors.black38,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // Option cards
+                        Center(
+                          child: Column(
+                            children: [
+                              _buildOptionCard("A.", "Option 1", 0),
+                              _buildOptionCard("B.", "Option 2", 1),
+                              _buildOptionCard("C.", "Option 3", 2),
+                              _buildOptionCard("D.", "Option 4", 3),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                    top: BorderSide(color: Colors.grey.shade300, width: 1)),
+              ),
+              child: Row(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(left: 20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 240,
+                          child: Text(
+                            'Ch1 L1: Animal Nutrition',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            maxLines: 1,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 200,
+                          child: Text(
+                            '50 of 50 questions',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            maxLines: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: currentPage > 1
+                        ? () => goToPage(currentPage - 1)
+                        : null,
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.blue,
+                      size: 36,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: currentPage < totalPages
+                        ? () => goToPage(currentPage + 1)
+                        : null,
+                    icon: const Icon(
+                      Icons.arrow_forward,
+                      color: Colors.blue,
+                      size: 36,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

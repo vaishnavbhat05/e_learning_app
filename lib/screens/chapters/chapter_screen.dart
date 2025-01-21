@@ -3,6 +3,10 @@ import '/screens/chapters/chapter_tab_bar.dart';
 import 'package:flutter/material.dart';
 import '/screens/lessons/lessons_tests_screen.dart';
 
+
+double currentProgress = 50;
+double normalizedProgress = (currentProgress / 100).clamp(0.0, 1.0);
+
 class ChapterScreen extends StatelessWidget {
   const ChapterScreen({super.key});
 
@@ -26,7 +30,8 @@ class ChapterScreen extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MainPage(index: 1), // Navigate to Profile tab
+                    builder: (context) =>
+                        MainPage(index: 1), // Navigate to Profile tab
                   ),
                 );
               },
@@ -52,52 +57,68 @@ class ChapterScreen extends StatelessWidget {
               const ChapterTabBar(),
               const SizedBox(height: 30),
               // Lesson Cards
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildLessonCard(
-                        'Introduction To Biology', Colors.green[100]!,
-                        Icons.eco),
-                    const SizedBox(width: 10),
-                    _buildLessonCard(
-                        'Morphology of Flowering Plants', Colors.yellow[100]!,
-                        Icons.science),
-                    const SizedBox(width: 10),
-                    _buildLessonCard(
-                        'Biological Classification', Colors.pink[100]!,
-                        Icons.lightbulb),
-                  ],
-                ),
+              Stack(
+                clipBehavior:
+                    Clip.none, // Prevent clipping of the downward icon
+                children: [
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildLessonCard('Introduction To Biology',
+                            Colors.green[100]!, Icons.eco),
+                        const SizedBox(width: 10),
+                        _buildLessonCard('Morphology of Flowering Plants',
+                            Colors.yellow[100]!, Icons.science),
+                        const SizedBox(width: 10),
+                        _buildLessonCard('Biological Classification',
+                            Colors.pink[100]!, Icons.lightbulb),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    bottom: -16, // Moves the container outside
+                    left: 70, // Adjust this for horizontal positioning
+                    child: ClipPath(
+                      clipper: TriangleClipper(),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 30),
               // Lesson Progress
               _buildLessonProgressCard(
-                title: 'ANIMAL NUTRITION',
-                lessonNumber: 1,
-                topics: [
-                  _buildTopic('Food Substances', 'Classes and sources.', true),
-                  _buildTopic(
-                      'Balanced Diet', 'Sources of food substance.', true),
-                  _buildTopic(
-                      'Food Test', 'Malnutrition and its effects.', false),
-                  _buildTopic('Digestive Enzymes',
-                      'Effects of pH, temperature.', false),
-                ],
-                isCurrentContent: true,
-                context: context
-              ),
+                  title: 'ANIMAL NUTRITION',
+                  lessonNumber: 1,
+                  topics: [
+                    _buildTopic(
+                        'Food Substances', 'Classes and sources.', true),
+                    _buildTopic(
+                        'Balanced Diet', 'Sources of food substance.', true),
+                    _buildTopic(
+                        'Food Test', 'Malnutrition and its effects.', false),
+                    _buildTopic('Digestive Enzymes',
+                        'Effects of pH, temperature.', false),
+                  ],
+                  isCurrentContent: true,
+                  context: context),
               const SizedBox(height: 25),
               _buildLessonProgressCard(
-                title: 'PLANT NUTRITION',
-                lessonNumber: 2,
-                topics: [
-                  _buildTopic('Photosynthesis', 'Light reactions.', false),
-                  _buildTopic('Mineral Absorption', 'Nutrient uptake.', false),
-                ],
-                isCurrentContent: false,
-                context: context
-              ),
+                  title: 'PLANT NUTRITION',
+                  lessonNumber: 2,
+                  topics: [
+                    _buildTopic('Photosynthesis', 'Light reactions.', false),
+                    _buildTopic(
+                        'Mineral Absorption', 'Nutrient uptake.', false),
+                  ],
+                  isCurrentContent: false,
+                  context: context),
             ],
           ),
         ),
@@ -148,7 +169,8 @@ class ChapterScreen extends StatelessWidget {
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                   child: Text(
                     title,
                     style: const TextStyle(
@@ -164,13 +186,12 @@ class ChapterScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLessonProgressCard({
-    required String title,
-    required int lessonNumber,
-    required List<Widget> topics,
-    required bool isCurrentContent,
-    required BuildContext context
-  }) {
+  Widget _buildLessonProgressCard(
+      {required String title,
+      required int lessonNumber,
+      required List<Widget> topics,
+      required bool isCurrentContent,
+      required BuildContext context}) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -198,18 +219,21 @@ class ChapterScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300, width: 2), // Border color
-                      shape: BoxShape.circle,
-                      color: Colors.transparent, // No color inside the circle
+                Stack(
+                  alignment: Alignment.center, // Center the circular progress indicator
+                  children: [
+                    Transform.rotate(
+                      angle: 3.1,
+                      child: CircularProgressIndicator(
+                        value: normalizedProgress, // Ensure value is between 0.0 and 1.0
+                        strokeWidth: 3, // Adjust stroke width to match your design
+                        color: Colors.green,
+                        backgroundColor: Colors.grey[200],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
+
                 const SizedBox(width: 14),
                 RichText(
                   text: TextSpan(
@@ -218,7 +242,10 @@ class ChapterScreen extends StatelessWidget {
                         text: '$title    ',
                         style: TextStyle(
                           fontSize: 12,
-                          color: isCurrentContent ? Colors.blue : Colors.grey, // Change color to blue for the current content
+                          color: isCurrentContent
+                              ? Colors.blue
+                              : Colors
+                                  .grey, // Change color to blue for the current content
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -235,7 +262,9 @@ class ChapterScreen extends StatelessWidget {
               ],
             ), // Add some spacing between the title and the line
             Padding(
-              padding: const EdgeInsets.only(left: 18.0), // Align the line to the right, matching the topic
+              padding: const EdgeInsets.only(
+                  left:
+                      18.0), // Align the line to the right, matching the topic
               child: Container(
                 width: 2, // Thickness of the line
                 height: 25, // Height of the line below the dot
@@ -261,11 +290,15 @@ class ChapterScreen extends StatelessWidget {
               // Conditionally show the check icon or the dot container
               isCompleted
                   ? const Icon(
-                Icons.check, // Check icon for completed topic
-                color: Colors.green, // Green color for the check icon
-                size: 18, // Icon size
-              )
-                  : Icon(Icons.circle_sharp,size: 12,color: Colors.grey[300],),
+                      Icons.check, // Check icon for completed topic
+                      color: Colors.green, // Green color for the check icon
+                      size: 18, // Icon size
+                    )
+                  : Icon(
+                      Icons.circle_sharp,
+                      size: 12,
+                      color: Colors.grey[300],
+                    ),
               const SizedBox(height: 5),
               // Line below the dot/check icon
               Padding(
@@ -287,10 +320,7 @@ class ChapterScreen extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      color: Colors.black
-                    ),
+                    style: const TextStyle(fontSize: 18, color: Colors.black),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -309,3 +339,24 @@ class ChapterScreen extends StatelessWidget {
     );
   }
 }
+
+class TriangleClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    // Start from top left
+    path.lineTo(0, 0);
+    // Go to top right
+    path.lineTo(size.width * 1,0);  // Increase the width for a larger base
+    // Go to bottom center (reduce height for a smaller triangle)
+    path.lineTo(size.width / 2, size.height / 2);  // Smaller height
+    path.close(); // Close the path (back to the starting point)
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) {
+    return false; // No need to reclip
+  }
+}
+

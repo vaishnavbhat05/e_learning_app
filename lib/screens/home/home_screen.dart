@@ -1,9 +1,32 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../home/search_not_found_screen.dart';
 import '../home/notifications_screen.dart';
 import '../home/currently_studying_card.dart';
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String _userName = 'User';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userName = prefs.getString('user_name') ?? 'Guest';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,10 +79,10 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Center(
+                Center(
                   child: Text(
-                    'Hi, Prallav',
-                    style: TextStyle(
+                    'Hi, $_userName',
+                    style: const TextStyle(
                         fontSize: 32,
                         color: Colors.black,
                         fontWeight: FontWeight.bold),
@@ -109,7 +132,10 @@ class HomeScreen extends StatelessWidget {
                         ),
                         GestureDetector(
                           onTap: () {
-                            // TODO: Add API call logic here
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const SearchNotFoundScreen()),
+                            );
                           },
                           child: Container(
                             width: 50,
