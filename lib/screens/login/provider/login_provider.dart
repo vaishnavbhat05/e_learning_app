@@ -55,11 +55,13 @@ class LoginProvider with ChangeNotifier {
   Future<void> _saveUserData(Map<String, dynamic> userData) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    await prefs.setString('user_name', userData['name'] ?? '');
-    await prefs.setString('user_email', userData['email'] ?? '');
-    await prefs.setString('access_token', userData['access_token'] ?? '');
-    await prefs.setString('refresh_token', userData['refresh_token'] ?? '');
+    await prefs.setString('userName', userData['userName'] ?? '');
+    await prefs.setString('email', userData['email'] ?? '');
+    await prefs.setString('accessToken', userData['accessToken'] ?? '');
+    await prefs.setString('refreshToken', userData['refreshToken'] ?? '');
   }
+
+
 
   // Set loading state
   void _setLoading(bool isLoading) {

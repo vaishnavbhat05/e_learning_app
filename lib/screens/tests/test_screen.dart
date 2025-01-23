@@ -17,7 +17,7 @@ class _TestScreenState extends State<TestScreen> {
   int totalPages = 4; // Total number of pages
   final PageController _pageController = PageController();
   late Timer _timer;
-  int _remainingTime = 300; // Start from 300 seconds (5 minutes)
+  int _remainingTime = 10; // Start from 300 seconds (5 minutes)
   bool _modalShown = false; // Track if the submit modal has been shown
 
   final ValueNotifier<double> _dividerProgress = ValueNotifier<double>(0.0);
@@ -91,22 +91,44 @@ class _TestScreenState extends State<TestScreen> {
         setState(() {
           _remainingTime--;
         });
-        _dividerProgress.value = _remainingTime / 300;
+        _dividerProgress.value = _remainingTime / 120;
       } else {
-        _timer.cancel(); // Stop the timer when time is up
+        _timer.cancel();
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ResultScreen(isTimeout: true),
+          ),
+        );// Stop the timer when time is up
       }
     });
   }
 
+  // bool _isSubmitted = false;
+  //
+  // void _submitTest() {
+  //   if (_isSubmitted) return;
+  //   _isSubmitted = true;
+  //   Navigator.pushReplacement(
+  //     context,
+  //     MaterialPageRoute(builder: (context) => const ResultScreen(isTimeout: false)),
+  //   );
+  // }
+
   String _formatTime(int seconds) {
-    int minutes = seconds ~/ 60;
-    seconds = seconds % 60;
-    return '${minutes.toString().padLeft(2)}m';
+    if (seconds < 60) {
+      return '${seconds.toString().padLeft(2)}s';
+    } else {
+      int minutes = seconds ~/ 60;
+      seconds = seconds % 60;
+      return '${minutes.toString().padLeft(2)}m';
+    }
   }
+
   void goToPage(int page) {
     if (page > 0 && page <= totalPages) {
       _pageController.animateToPage(page - 1,
-          duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+          duration: const Duration(milliseconds: 120), curve: Curves.easeInOut);
       setState(() {
         currentPage = page;
       });
@@ -200,7 +222,7 @@ class _TestScreenState extends State<TestScreen> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const ResultScreen(),
+                                builder: (context) => const ResultScreen(isTimeout: false,),
                               ),
                             );
                           },
@@ -289,7 +311,7 @@ class _TestScreenState extends State<TestScreen> {
                         const SizedBox(width: 5),
                         Text(
                           '${_formatTime(_remainingTime)} Remaining',
-                          style: TextStyle(fontSize: 16, color: Colors.blue),
+                          style: const TextStyle(fontSize: 16, color: Colors.blue),
                         ),
                       ],
                     ),
@@ -445,9 +467,9 @@ class _TestScreenState extends State<TestScreen> {
                     onPressed: currentPage > 1
                         ? () => goToPage(currentPage - 1)
                         : null,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.arrow_back,
-                      color: Colors.blue,
+                      color: currentPage > 1 ? Colors.blue : Colors.grey,
                       size: 36,
                     ),
                   ),
@@ -455,9 +477,9 @@ class _TestScreenState extends State<TestScreen> {
                     onPressed: currentPage < totalPages
                         ? () => goToPage(currentPage + 1)
                         : null,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.arrow_forward,
-                      color: Colors.blue,
+                      color: currentPage < totalPages ? Colors.blue : Colors.grey,
                       size: 36,
                     ),
                   ),

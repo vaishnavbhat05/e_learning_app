@@ -13,19 +13,82 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String _userName = 'User';
+  String userName = '';
+  bool isFirstTime = false;
+  List<Map<String, dynamic>> studyCards = [];
 
   @override
   void initState() {
     super.initState();
-    _loadUserName();
+    _loadUserData();
   }
 
-  Future<void> _loadUserName() async {
+  Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
     setState(() {
-      _userName = prefs.getString('user_name') ?? 'Guest';
+      userName = prefs.getString('userName') ?? 'Guest';
+
+      // Check if the app is opened for the first time
+      isFirstTime = prefs.getBool('isFirstTime') ?? true;
+
+      // Set default study card values based on first-time status
+      if (isFirstTime) {
+        studyCards = [
+          {
+            'subject': 'Geography',
+            'title': 'Elements of Physical Geography',
+            'progress': 0,
+            'color': Colors.pink.shade200,
+            'icon': Icons.map,
+          },
+          {
+            'subject': 'Mathematics',
+            'title': 'Pairs of Angles in Two Words',
+            'progress': 0,
+            'color': Colors.blue.shade200,
+            'icon': Icons.calculate,
+          },
+          {
+            'subject': 'Biology',
+            'title': 'Plants and Animals',
+            'progress': 0,
+            'color': Colors.teal.shade200,
+            'icon': Icons.bubble_chart,
+          },
+        ];
+
+        // Mark that the user has opened the app at least once
+        prefs.setBool('isFirstTime', false);
+      } else {
+        studyCards = [
+          {
+            'subject': 'Geography',
+            'title': 'Elements of Physical Geography',
+            'progress': 86,
+            'color': Colors.pink.shade200,
+            'icon': Icons.map,
+          },
+          {
+            'subject': 'Mathematics',
+            'title': 'Pairs of Angles in Two Words',
+            'progress': 60,
+            'color': Colors.blue.shade200,
+            'icon': Icons.calculate,
+          },
+          {
+            'subject': 'Biology',
+            'title': 'Plants and Animals',
+            'progress': 76,
+            'color': Colors.teal.shade200,
+            'icon': Icons.bubble_chart,
+          },
+        ];
+      }
     });
+
+    print('Loaded userName: $userName');
+    print('Is first time: $isFirstTime');
   }
 
   @override
@@ -81,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Center(
                   child: Text(
-                    'Hi, $_userName',
+                    'Hi, $userName',
                     style: const TextStyle(
                         fontSize: 32,
                         color: Colors.black,
@@ -126,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             decoration: InputDecoration(
                               border: InputBorder.none,
                               contentPadding:
-                              EdgeInsets.symmetric(vertical: 16),
+                                  EdgeInsets.symmetric(vertical: 16),
                             ),
                           ),
                         ),
@@ -134,7 +197,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const SearchNotFoundScreen()),
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const SearchNotFoundScreen()),
                             );
                           },
                           child: Container(
@@ -156,11 +221,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                const Padding(
-                  padding: EdgeInsets.only(left: 16.0),
+                Padding(
+                  padding: const EdgeInsets.only(left: 16.0),
                   child: Text(
-                    'CURRENTLY STUDYING',
-                    style: TextStyle(
+                    isFirstTime ? 'RECOMMENDED':'CURRENTLY STUDYING',
+                    style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.black54),
@@ -170,32 +235,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: SizedBox(
                     height: 320,
-                    child: ListView(
+                    child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      children: [
-                        StudyCard(
-                          subject: 'Geography',
-                          title: 'Elements of Physical Geography',
-                          progress: 86,
-                          color: Colors.pink.shade200,
-                          icon: Icons.map,
-                        ),
-                        const SizedBox(width: 6),
-                        StudyCard(
-                          subject: 'Mathematics',
-                          title: 'Pairs of Angles in Two Words',
-                          progress: 60,
-                          color: Colors.blue.shade200,
-                          icon: Icons.calculate,
-                        ),
-                        StudyCard(
-                          subject: 'Biology',
-                          title: 'Plants and Animals ',
-                          progress: 76,
-                          color: Colors.teal.shade200,
-                          icon: Icons.bubble_chart,
-                        ),
-                      ],
+                      itemCount: studyCards.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 10.0),
+                          child: StudyCard(
+                            subject: studyCards[index]['subject'],
+                            title: studyCards[index]['title'],
+                            progress: studyCards[index]['progress'],
+                            color: studyCards[index]['color'],
+                            icon: studyCards[index]['icon'],
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),

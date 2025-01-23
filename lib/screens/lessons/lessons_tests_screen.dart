@@ -1,7 +1,13 @@
+import 'dart:math';
+
+import 'package:e_learning_app/screens/lessons/provider/lesson_test_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../data/model/test.dart';
 import '../chapters/chapter_screen.dart';
 import '../tests/test_screen.dart';
 import 'lesson_details_screen.dart';
+
 
 class LessonTestScreen extends StatefulWidget {
   const LessonTestScreen({super.key});
@@ -11,7 +17,8 @@ class LessonTestScreen extends StatefulWidget {
 }
 
 class _LessonTestScreenState extends State<LessonTestScreen> {
-  bool showLessons = true; // Toggle between lessons and tests
+  bool showLessons = true;
+  int lessonId = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +28,6 @@ class _LessonTestScreenState extends State<LessonTestScreen> {
         backgroundColor: Colors.grey[100],
         elevation: 0,
         centerTitle: true,
-        // Ensures the title is centered
         leading: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12.0),
           child: IconButton(
@@ -93,6 +99,9 @@ class _LessonTestScreenState extends State<LessonTestScreen> {
                     setState(() {
                       showLessons = false; // Show tests
                     });
+                    // Trigger API call when "TESTS" is selected
+                    Provider.of<LessonTestProvider>(context, listen: false)
+                        .fetchTests(lessonId); // Pass the lessonId here
                   }),
                 ],
               ),
@@ -100,7 +109,7 @@ class _LessonTestScreenState extends State<LessonTestScreen> {
             const SizedBox(height: 30),
             Expanded(
               child:
-                  showLessons ? _buildLessonsContent() : _buildTestsContent(),
+              showLessons ? _buildLessonsContent() : _buildTestsContent(),
             ),
           ],
         ),
@@ -113,9 +122,9 @@ class _LessonTestScreenState extends State<LessonTestScreen> {
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: isSelected
           ? BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            )
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+      )
           : null,
       child: GestureDetector(
         onTap: onTap,
@@ -248,26 +257,39 @@ class _LessonTestScreenState extends State<LessonTestScreen> {
   }
 
   Widget _buildTestsContent() {
-    return ListView(
-      children: [
-        _buildTestCard(
-          "BEGINNER",
-          "Animal Nutrition: ",
-          "Feeding in Aves",
-          "You have 40 minutes to answer all 50 questions. For each right ans 5 marks.",
-          Colors.orange.shade300,
-          true,
-        ),
-        _buildTestCard(
-          "INTERMEDIATE",
-          "Animal Nutrition: ",
-          "Balanced Diet",
-          "You have 30 minutes to answer all 50 questions. For each right ans 5 marks.",
-          Colors.blue.shade300,
-          false,
-          
-        ),
-      ],
+    return Consumer<LessonTestProvider>(
+      builder: (context, provider, child) {
+        if (provider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (provider.errorMessage != null) {
+          return Center(child: Text(provider.errorMessage!));
+        }
+
+        return ListView.builder(
+          itemCount: provider.tests.length,
+          itemBuilder: (context, index) {
+            final test = provider.tests[index];
+            Random random = Random(index); // Use index to fix the color for each item
+            Color randomColor = Color.fromARGB(
+              255,
+              random.nextInt(150) + 50, // Random Red value (0-255)
+              random.nextInt(150) + 50, // Random Green value (0-255)
+              random.nextInt(150) + 50, // Random Blue value (0-255)
+            );
+
+            return _buildTestCard(
+              test.level,
+              test.heading,
+              test.subHeading,
+              "${test.totalTime} minutes to complete",
+              randomColor, // Pass the fixed random color
+              true,
+            );
+          },
+        );
+      },
     );
   }
 
@@ -302,31 +324,29 @@ class _LessonTestScreenState extends State<LessonTestScreen> {
                   child: const Icon(Icons.eco, color: Colors.white, size: 32), // Icon
                 ),
                 const SizedBox(width: 20),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      level,
-                      style: const TextStyle(
-                          color: Colors.blue, fontSize: 14, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      title,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        level,
+                        style: const TextStyle(
+                            color: Colors.blue, fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        title,
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold,),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 20),
             // Subtitle in the middle
             Text(
-              testDescription,
+              subtitle,
               style: const TextStyle(color: Colors.grey, fontSize: 18),
               textAlign: TextAlign.start,
             ),
@@ -353,10 +373,10 @@ class _LessonTestScreenState extends State<LessonTestScreen> {
                   style: OutlinedButton.styleFrom(
                     backgroundColor: isCurrentContent
                         ? Colors.blue
-                        : Colors.blue.withOpacity(0.5), // Slightly shaded blue
+                        : Colors.grey, // Background color
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ), // No border color is specified
+                      borderRadius: BorderRadius.circular(10), // Button rounded edges
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start, // Aligns content

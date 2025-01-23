@@ -17,12 +17,23 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
   int? selectedPage;
 
   void goToPage(int pageNumber) {
+    setState(() {
+      selectedPage = pageNumber; // Update selectedPage when navigating
+    });
+
     _pageController.animateToPage(
       pageNumber - 1,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeIn,
     );
   }
+  @override
+  void initState() {
+    super.initState();
+    // Set the selectedPage to 1 on initial load
+    selectedPage = 1;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -259,6 +270,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                 onPageChanged: (index) {
                   setState(() {
                     currentPage = index + 1;
+                    selectedPage = currentPage;
                   });
                 },
                 itemBuilder: (context, index) {
@@ -356,9 +368,9 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                       onPressed: currentPage > 1
                           ? () => goToPage(currentPage - 1)
                           : null,
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.arrow_back,
-                        color: Colors.blue,
+                        color: currentPage > 1 ? Colors.blue : Colors.grey, // Grey when at the first page
                         size: 40,
                       ),
                     ),
@@ -366,9 +378,9 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                       onPressed: currentPage < totalPages
                           ? () => goToPage(currentPage + 1)
                           : null,
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.arrow_forward,
-                        color: Colors.blue,
+                        color: currentPage < totalPages ? Colors.blue : Colors.grey, // Grey when at the last page
                         size: 40,
                       ),
                     ),
