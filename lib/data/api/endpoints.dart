@@ -5,5 +5,13 @@ class Endpoints {
   static String verifyAccount(String verificationCode) {
     return '/user/register?otp=$verificationCode';
   }
+
   static const String login = '/login';
+  static const String profile = '/profile';
+
+  static String getTestsForLesson(int lessonId) {
+    return '/tests/lessons/$lessonId';
+  }
+
+  static const String subjects = '/subjects';
 }

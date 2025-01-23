@@ -12,7 +12,6 @@ class LoginScreen extends StatefulWidget {
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
-
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -23,6 +22,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isPasswordVisible = false;
   final _formKey = GlobalKey<FormState>();
+
+  bool _isLoading = false; // Track loading state
 
   void _validateForm() {
     setState(() {
@@ -109,31 +110,47 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const Spacer(),
                             GestureDetector(
-                              onTap: _isFormValid
-                                  ? () {
-                                      // Create LoginModel
-                                      final loginModel = Login(
-                                        email: _emailController.text,
-                                        password: _passwordController.text,
-                                      );
+                              onTap: _isFormValid && !_isLoading
+                                  ? () async {
+                                setState(() {
+                                  _isLoading = true; // Show loading indicator
+                                });
 
-                                      // Call loginUser API
-                                      context.read<LoginProvider>().loginUser(
-                                            loginModel,
-                                            context,
-                                          );
-                                    }
+                                // Create LoginModel
+                                final loginModel = Login(
+                                  email: _emailController.text,
+                                  password: _passwordController.text,
+                                );
+
+                                // Call loginUser API
+                                await context.read<LoginProvider>().loginUser(
+                                  loginModel,
+                                  context,
+                                );
+
+                                setState(() {
+                                  _isLoading = false; // Hide loading indicator
+                                });
+                              }
                                   : null,
                               child: Container(
                                 height: 90,
                                 width: 90,
                                 decoration: BoxDecoration(
-                                  color: _isFormValid
+                                  color: _isFormValid && !_isLoading
                                       ? Colors.blue
                                       : Colors.blue.withOpacity(0.5),
                                   borderRadius: BorderRadius.circular(50),
                                 ),
-                                child: const Center(
+                                child: _isLoading
+                                    ? const Center(
+                                  child: CircularProgressIndicator(
+                                    valueColor:
+                                    AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                                    : const Center(
                                   child: Icon(
                                     Icons.arrow_right_alt_outlined,
                                     size: 60,
@@ -151,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
-                                        const ForgotPasswordScreen()));
+                                    const ForgotPasswordScreen()));
                           },
                           child: const Text(
                             "Forgot Password",

@@ -1,3 +1,5 @@
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '/screens/main_page.dart';
 import '/screens/chapters/chapter_tab_bar.dart';
 import 'package:flutter/material.dart';
@@ -186,14 +188,15 @@ class ChapterScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLessonProgressCard(
-      {required String title,
-      required int lessonNumber,
-      required List<Widget> topics,
-      required bool isCurrentContent,
-      required BuildContext context}) {
+  Widget _buildLessonProgressCard({
+    required String title,
+    required int lessonNumber,
+    required List<Widget> topics,
+    required bool isCurrentContent,
+    required BuildContext context,
+  }) {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -220,20 +223,25 @@ class ChapterScreen extends StatelessWidget {
             Row(
               children: [
                 Stack(
-                  alignment: Alignment.center, // Center the circular progress indicator
+                  alignment: Alignment.center,
                   children: [
                     Transform.rotate(
                       angle: 3.1,
                       child: CircularProgressIndicator(
-                        value: normalizedProgress, // Ensure value is between 0.0 and 1.0
-                        strokeWidth: 3, // Adjust stroke width to match your design
-                        color: Colors.green,
+                        value: isCurrentContent ? normalizedProgress : 0, // Indeterminate for the second card
+                        strokeWidth: 3,
+                        color: isCurrentContent ? Colors.green : Colors.grey,
                         backgroundColor: Colors.grey[200],
                       ),
                     ),
+                    if (!isCurrentContent) // Show lock icon only if the content is locked
+                      const Icon(
+                        Icons.lock,
+                        size: 24,
+                        color: Colors.grey,
+                      ),
                   ],
                 ),
-
                 const SizedBox(width: 14),
                 RichText(
                   text: TextSpan(
@@ -242,10 +250,7 @@ class ChapterScreen extends StatelessWidget {
                         text: '$title    ',
                         style: TextStyle(
                           fontSize: 12,
-                          color: isCurrentContent
-                              ? Colors.blue
-                              : Colors
-                                  .grey, // Change color to blue for the current content
+                          color: isCurrentContent ? Colors.blue : Colors.grey,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -260,23 +265,23 @@ class ChapterScreen extends StatelessWidget {
                   ),
                 ),
               ],
-            ), // Add some spacing between the title and the line
+            ),
             Padding(
-              padding: const EdgeInsets.only(
-                  left:
-                      18.0), // Align the line to the right, matching the topic
+              padding: const EdgeInsets.only(left: 18.0),
               child: Container(
-                width: 2, // Thickness of the line
-                height: 25, // Height of the line below the dot
-                color: Colors.grey[300], // Line color
+                width: 2,
+                height: 25,
+                color: Colors.grey[300],
               ),
-            ), // Add some space between the line and the topics
+            ),
             ...topics,
           ],
         ),
       ),
     );
   }
+
+
 
   Widget _buildTopic(String title, String subtitle, bool isCompleted) {
     return Padding(
