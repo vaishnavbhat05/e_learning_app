@@ -5,20 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../data/model/test.dart';
 import '../chapters/chapter_screen.dart';
+import '../tests/provider/test_screen_provider.dart';
 import '../tests/test_screen.dart';
 import 'lesson_details_screen.dart';
 
-
-class LessonTestScreen extends StatefulWidget {
-  const LessonTestScreen({super.key});
+class ChapterDetailsScreen extends StatefulWidget {
+  const ChapterDetailsScreen({super.key});
 
   @override
-  _LessonTestScreenState createState() => _LessonTestScreenState();
+  _ChapterDetailsScreenState createState() => _ChapterDetailsScreenState();
 }
 
-class _LessonTestScreenState extends State<LessonTestScreen> {
+class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
   bool showLessons = true;
   int lessonId = 1;
+  // int testId = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +110,7 @@ class _LessonTestScreenState extends State<LessonTestScreen> {
             const SizedBox(height: 30),
             Expanded(
               child:
-              showLessons ? _buildLessonsContent() : _buildTestsContent(),
+                  showLessons ? _buildLessonsContent() : _buildTestsContent(),
             ),
           ],
         ),
@@ -122,9 +123,9 @@ class _LessonTestScreenState extends State<LessonTestScreen> {
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: isSelected
           ? BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      )
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            )
           : null,
       child: GestureDetector(
         onTap: onTap,
@@ -271,7 +272,8 @@ class _LessonTestScreenState extends State<LessonTestScreen> {
           itemCount: provider.tests.length,
           itemBuilder: (context, index) {
             final test = provider.tests[index];
-            Random random = Random(index); // Use index to fix the color for each item
+            Random random =
+                Random(index); // Use index to fix the color for each item
             Color randomColor = Color.fromARGB(
               255,
               random.nextInt(150) + 50, // Random Red value (0-255)
@@ -293,8 +295,8 @@ class _LessonTestScreenState extends State<LessonTestScreen> {
     );
   }
 
-  Widget _buildTestCard(
-      String level, String title, String subtitle, String testDescription, Color color, bool isCurrentContent) {
+  Widget _buildTestCard(String level, String title, String subtitle,
+      String testDescription, Color color, bool isCurrentContent) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 30),
       decoration: BoxDecoration(
@@ -312,7 +314,8 @@ class _LessonTestScreenState extends State<LessonTestScreen> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20), // Padding inside the card
+        padding: const EdgeInsets.symmetric(
+            vertical: 20, horizontal: 20), // Padding inside the card
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -321,7 +324,8 @@ class _LessonTestScreenState extends State<LessonTestScreen> {
                 CircleAvatar(
                   backgroundColor: color,
                   radius: 35,
-                  child: const Icon(Icons.eco, color: Colors.white, size: 32), // Icon
+                  child: const Icon(Icons.eco,
+                      color: Colors.white, size: 32), // Icon
                 ),
                 const SizedBox(width: 20),
                 Expanded(
@@ -331,12 +335,17 @@ class _LessonTestScreenState extends State<LessonTestScreen> {
                       Text(
                         level,
                         style: const TextStyle(
-                            color: Colors.blue, fontSize: 14, fontWeight: FontWeight.bold),
+                            color: Colors.blue,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 10),
                       Text(
                         title,
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold,),
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -353,47 +362,39 @@ class _LessonTestScreenState extends State<LessonTestScreen> {
             const SizedBox(height: 20),
             // Button at the bottom
             SizedBox(
-              height: 60, // Button height
-              width: 320, // Button width
+              height: 60,
+              width: 320,
               child: Material(
-                shadowColor: Colors.blue[300], // Shadow color
-                borderRadius: BorderRadius.circular(10), // Matches button border radius
+                shadowColor: Colors.blue[300],
+                borderRadius: BorderRadius.circular(10),
                 child: OutlinedButton(
-                  onPressed: isCurrentContent
-                      ? () {
-                    Navigator.pop(context);
+                  onPressed: () {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const TestScreen(),
+                        builder: (context) => const TestScreen(), // Pass testId here
                       ),
                     );
-                  }
-                      : null, // Disable button if not current content
+                    Provider.of<TestScreenProvider>(context, listen: false)
+                        .fetchTestData(1); // Fetch data for testId 1
+                  },
                   style: OutlinedButton.styleFrom(
-                    backgroundColor: isCurrentContent
-                        ? Colors.blue
-                        : Colors.grey, // Background color
+                    backgroundColor: Colors.blue,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10), // Button rounded edges
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start, // Aligns content
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       const SizedBox(width: 90),
                       const Text(
                         'Begin Test',
-                        style: TextStyle(
-                          color: Colors.white, // Text remains white
-                          fontSize: 18,
-                        ),
+                        style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
                       const SizedBox(width: 70),
                       CircleAvatar(
-                        backgroundColor: isCurrentContent
-                            ? Colors.blue[700]
-                            : Colors.blue.withOpacity(0.2), // Slightly shaded blue for icon
+                        backgroundColor: Colors.blue[700],
                         radius: 12,
                         child: const Icon(Icons.arrow_right_alt_sharp, color: Colors.white),
                       ),

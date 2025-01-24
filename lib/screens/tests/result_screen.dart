@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:e_learning_app/screens/lessons/lessons_tests_screen.dart';
+import 'package:e_learning_app/screens/lessons/chapter_details_screen.dart';
 import 'package:e_learning_app/screens/tests/test_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -60,7 +60,7 @@ class ResultScreen extends StatelessWidget {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const LessonTestScreen()),
+            MaterialPageRoute(builder: (context) => const ChapterDetailsScreen()),
           );
         },
         icon: const Icon(
@@ -194,7 +194,7 @@ class ResultScreen extends StatelessWidget {
         onPressed: () {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => isTimeout ? const LessonTestScreen() : const TestScreen(),),
+            MaterialPageRoute(builder: (context) => isTimeout ? const ChapterDetailsScreen() : const TestScreen(),),
           );
         },
         style: ElevatedButton.styleFrom(

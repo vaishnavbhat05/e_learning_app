@@ -1,4 +1,4 @@
-import 'package:e_learning_app/screens/lessons/lessons_tests_screen.dart';
+import 'package:e_learning_app/screens/lessons/chapter_details_screen.dart';
 import 'package:flutter/material.dart';
 
 class LessonDetailScreen extends StatefulWidget {
@@ -50,7 +50,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                 Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const LessonTestScreen()));
+                        builder: (context) => const ChapterDetailsScreen()));
               },
               icon: const Icon(Icons.arrow_back, color: Colors.blue,size: 30,),
             ),
@@ -148,9 +148,9 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                                           height: 50,
                                           decoration: BoxDecoration(
                                             borderRadius: BorderRadius.circular(10),
-                                            color: selectedPage == index + 1
-                                                ? Colors.blue.withOpacity(0.2)
-                                                : Colors.transparent,
+                                            // color: selectedPage == index + 1
+                                            //     ? Colors.blue.withOpacity(0.2)
+                                            //     : Colors.transparent,
                                           ),
                                           child: Center(
                                             child: Text(
@@ -339,7 +339,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                           SizedBox(
                             width: 240, // Adjust width as per your design
                             child: Text(
-                              'Ch1 L1: Animal Nutrition',
+                              'L1: Animal Nutrition',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -351,7 +351,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                           SizedBox(
                             width: 200, // Adjust width as per your design
                             child: Text(
-                              '50 of 50 questions',
+                              '31 of 42 pages',
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey,

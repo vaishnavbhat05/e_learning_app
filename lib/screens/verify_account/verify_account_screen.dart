@@ -27,6 +27,7 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
   String? userName;
   String? email;
   String? password;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -98,8 +99,18 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
       final provider =
           Provider.of<VerifyAccountProvider>(context, listen: false);
 
-      // Call the verifyAccount function from the provider
-      await provider.verifyAccount(otp, context);
+      setState(() {
+        _isLoading = true; // Set loading to true
+      });
+      try {
+        await provider.verifyAccount(otp, context);
+      } catch (e) {
+        // Handle error if needed
+      } finally {
+        setState(() {
+          _isLoading = false; // Set loading to false
+        });
+      }
     } else {
       if (kDebugMode) {
         print('Please fill all fields before verifying.');
@@ -112,160 +123,166 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white.withOpacity(0.97),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                Container(
-                  height: 300,
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage("assets/images/verify_page.png"),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 15,
-                  left: 15,
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const RegisterScreen()));
-                    },
-                    child: const Text(
-                      '',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Column(
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
                 children: [
-                  const SizedBox(height: 60),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(4, (index) {
-                      return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 8),
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(
-                              color: _focusNodes[index].hasFocus
-                                  ? Colors.blue
-                                  : Colors.transparent,
-                              width: 2),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Center(
-                          child: TextField(
-                            controller: _controllers[index],
-                            focusNode: _focusNodes[index],
-                            keyboardType: TextInputType.number,
-                            textAlign: TextAlign.center,
-                            maxLength: 1,
-                            cursorWidth: 1,
-                            cursorHeight: 32,
-                            cursorColor: _focusNodes[index].hasFocus
-                                ? Colors.blue
-                                : Colors.black,
-                            style: const TextStyle(
-                              fontSize: 32,
-                              color: Colors.black,
-                            ),
-                            decoration: const InputDecoration(
-                              counterText: "",
-                              border: InputBorder.none,
-                            ),
-                            onChanged: (value) {
-                              if (value.isNotEmpty && index < 3) {
-                                FocusScope.of(context).nextFocus();
-                              } else if (value.isEmpty && index > 0) {
-                                FocusScope.of(context).previousFocus();
-                              }
-                            },
-                          ),
-                        ),
-                      );
-                    }),
+                  Container(
+                    height: 300,
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage("assets/images/verify_page.png"),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 30),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text.rich(
-                        TextSpan(
-                          style: const TextStyle(
-                            fontSize: 20,
-                            color: Colors.grey,
-                          ),
-                          children: [
-                            const TextSpan(text: "Didn't receive a code? "),
-                            TextSpan(
-                              text: "Resend",
-                              style: const TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold,
-                                decoration: TextDecoration.underline,
-                              ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  _resendOtp();
-                                },
-                            ),
-                          ],
-                        ),
+                  Positioned(
+                    top: 15,
+                    left: 15,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const RegisterScreen()));
+                      },
+                      child: const Text(
+                        '',
+                        style: TextStyle(color: Colors.black),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 50),
-                  Row(
-                    children: [
-                      const SizedBox(width: 30),
-                      const Text(
-                        "Verify",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 165),
-                      GestureDetector(
-                        onTap: _onVerifyPressed,
-                        child: Container(
-                          height: 85,
-                          width: 85,
-                          decoration: BoxDecoration(
-                            color: _allFieldsFilled
-                                ? Colors.blue
-                                : Colors.blue.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.arrow_right_alt_outlined,
-                              size: 60,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 60),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(4, (index) {
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(
+                                color: _focusNodes[index].hasFocus
+                                    ? Colors.blue
+                                    : Colors.transparent,
+                                width: 2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Center(
+                            child: TextField(
+                              controller: _controllers[index],
+                              focusNode: _focusNodes[index],
+                              keyboardType: TextInputType.number,
+                              textAlign: TextAlign.center,
+                              maxLength: 1,
+                              cursorWidth: 1,
+                              cursorHeight: 32,
+                              cursorColor: _focusNodes[index].hasFocus
+                                  ? Colors.blue
+                                  : Colors.black,
+                              style: const TextStyle(
+                                fontSize: 32,
+                                color: Colors.black,
+                              ),
+                              decoration: const InputDecoration(
+                                counterText: "",
+                                border: InputBorder.none,
+                              ),
+                              onChanged: (value) {
+                                if (value.isNotEmpty && index < 3) {
+                                  FocusScope.of(context).nextFocus();
+                                } else if (value.isEmpty && index > 0) {
+                                  FocusScope.of(context).previousFocus();
+                                }
+                              },
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 30),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            style: const TextStyle(
+                              fontSize: 20,
+                              color: Colors.grey,
+                            ),
+                            children: [
+                              const TextSpan(text: "Didn't receive a code? "),
+                              TextSpan(
+                                text: "Resend",
+                                style: const TextStyle(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    _resendOtp();
+                                  },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 50),
+                    Row(
+                      children: [
+                        const SizedBox(width: 30),
+                        const Text(
+                          "Verify",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 165),
+                        GestureDetector(
+                          onTap: _isLoading ? null : _onVerifyPressed,
+                          child: Container(
+                            height: 85,
+                            width: 85,
+                            decoration: BoxDecoration(
+                              color: _allFieldsFilled
+                                  ? (_isLoading ? Colors.grey : Colors.blue)
+                                  : Colors.blue.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(50),
+                            ),
+                            child: Center(
+                              child: _isLoading
+                                  ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                                  : const Icon(
+                                Icons.arrow_right_alt_outlined,
+                                size: 60,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
