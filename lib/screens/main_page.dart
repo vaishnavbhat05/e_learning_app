@@ -76,7 +76,7 @@ class _MainPageState extends State<MainPage> {
             BottomNavigationBarItem(
                 icon: Icon(Icons.home_outlined, size: 35), label: 'Home'),
             BottomNavigationBarItem(
-                icon: Icon(Icons.menu_book_outlined, size: 35), label: 'Course'),
+                icon: Icon(Icons.copy_rounded, size: 35), label: 'Course'),
             BottomNavigationBarItem(
                 icon: Icon(Icons.person_2_outlined, size: 35), label: 'Profile'),
           ],

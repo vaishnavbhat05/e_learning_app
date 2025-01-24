@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '/screens/main_page.dart';
 import '/screens/chapters/chapter_tab_bar.dart';
 import 'package:flutter/material.dart';
-import '/screens/lessons/lessons_tests_screen.dart';
+import '/screens/lessons/chapter_details_screen.dart';
 
 
 double currentProgress = 50;
@@ -200,7 +200,7 @@ class ChapterScreen extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const LessonTestScreen(),
+            builder: (context) => const ChapterDetailsScreen(),
           ),
         );
       },

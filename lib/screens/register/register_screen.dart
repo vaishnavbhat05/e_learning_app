@@ -45,6 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _isFormValid = _formKey.currentState?.validate() ?? false;
     });
   }
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -144,14 +145,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             const Spacer(),
                             GestureDetector(
-                              onTap: _isFormValid
-                                  ? () {
+                              onTap: _isFormValid && !_isLoading
+                                  ? () async {
+                                setState(() {
+                                  _isLoading = true; // Start loading
+                                });
+
                                 final registerModel = Register(
                                   userName: _nameController.text,
                                   email: _emailController.text,
                                   password: _passwordController.text,
                                 );
-                                context.read<RegisterProvider>().registerUser(registerModel, context);
+
+                                // Call the register function
+                                await context.read<RegisterProvider>().registerUser (registerModel, context);
+
+                                setState(() {
+                                  _isLoading = false; // Stop loading
+                                });
                               }
                                   : null,
                               child: Container(
@@ -161,7 +172,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   color: _isFormValid ? Colors.blue : Colors.blue.withOpacity(0.5),
                                   borderRadius: BorderRadius.circular(50),
                                 ),
-                                child: const Center(
+                                child: _isLoading
+                                    ? const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                                )
+                                    : const Center(
                                   child: Icon(
                                     Icons.arrow_right_alt_outlined,
                                     size: 60,

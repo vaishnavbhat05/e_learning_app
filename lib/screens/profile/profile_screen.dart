@@ -1,6 +1,11 @@
+import 'dart:io';
+
+import 'package:e_learning_app/screens/profile/provider/edit_provider.dart';
 import 'package:e_learning_app/screens/profile/provider/profile_provider.dart';
+import 'package:e_learning_app/screens/profile/provider/result_details_provider.dart';
 import 'package:e_learning_app/screens/profile/result_details_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../data/model/profile.dart';
 import '../login/login_screen.dart';
@@ -13,9 +18,22 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-
   bool _isEditing = false;
   bool _isNotificationEnabled = true;
+
+  File? _image;
+  TextEditingController _usernameController =
+      TextEditingController();
+
+  Future<void> _pickImage() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +89,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: Colors.blue,
                       size: 40,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
+                      final editProvider = Provider.of<EditProvider>(context, listen: false);
+                      await editProvider.updateProfile(
+                        userName: _usernameController.text,
+                        profileImage: _image,
+                      );
                       setState(() {
                         _isEditing = false; // Save and exit edit mode
                       });
@@ -81,8 +104,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 15, right: 10),
                     child: IconButton(
-                      icon:
-                      const Icon(Icons.more_vert, color: Colors.blue, size: 40),
+                      icon: const Icon(Icons.more_vert,
+                          color: Colors.blue, size: 40),
                       onPressed: () async {
                         final value = await showMenu<String>(
                           color: Colors.white,
@@ -134,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           elevation: 8.0,
                           shape: RoundedRectangleBorder(
                             borderRadius:
-                            BorderRadius.circular(15.0), // Rounded corners
+                                BorderRadius.circular(15.0), // Rounded corners
                           ),
                         );
 
@@ -160,13 +183,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 30),
                     _buildProfilePicture(profile),
                     const SizedBox(height: 15),
-                    Text(
-                      profile.userName ?? "Unknown User",
+                    _isEditing
+                        ? TextField(
+                      controller: _usernameController..text = profile.userName,
                       style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
+                          fontSize: 28, fontWeight: FontWeight.bold),
+                    )
+                        : Text(
+                      profile.userName,
+                      style: const TextStyle(
+                          fontSize: 28, fontWeight: FontWeight.bold),
                     ),
+
+                    const SizedBox(height: 5),
                     const SizedBox(height: 5),
                     Text(
                       profile.email ?? "No Email Provided",
@@ -190,23 +219,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfilePicture(Profile profile) {
-    return Container(
-      width: 120,
-      height: 120,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.blue,
-          width: 1,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(5),
-        child: CircleAvatar(
-          radius: 60,
-          backgroundImage: NetworkImage(profile.profileImageUrl ?? 'https://e-learning-app-bucket.s3.ap-south-1.amazonaws.com/user-profile-images/1-38778606-fabd-4a25-a752-ea9cdf5d3dff.jpg'),
-          backgroundColor: Colors.transparent,
-        ),
+    return GestureDetector(
+      onTap: _isEditing ? _pickImage : null,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.blue,
+                width: 1,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: CircleAvatar(
+                radius: 60,
+                backgroundImage: _image != null
+                    ? FileImage(_image!)
+                    : NetworkImage(profile.profileImageUrl ??
+                            'https://e-learning-app-bucket.s3.ap-south-1.amazonaws.com/user-profile-images/1-38778606-fabd-4a25-a752-ea9cdf5d3dff.jpg')
+                        as ImageProvider,
+                backgroundColor: Colors.transparent,
+                child: _isEditing
+                    ? ClipOval(
+                        child: Container(
+                          color: Colors.white.withOpacity(0.4), // Blur effect
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
+                      )
+                    : null,
+              ),
+            ),
+          ),
+          if (_isEditing)
+            Container(
+              width: 50,
+              height: 50,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.blue, // Blue circle around the icon
+              ),
+              child: const Icon(
+                Icons.camera_alt_outlined,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -215,9 +279,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        _buildStatCard(profile.completerChapterInPercentage.toString(), "Chapters\nCompleted"),
-        _buildStatCard(profile.averageScore.toString(), "Average\nTest Score"),
-        _buildStatCard(profile.highestScore.toString(), "Highest\nTest Score"),
+        _buildStatCard(profile.completerChapterInPercentage.toInt().toString(),
+            "Chapters\nCompleted"),
+        _buildStatCard(profile.averageScore.toInt().toString(), "Average\nTest Score"),
+        _buildStatCard(profile.highestScore.toInt().toString(), "Highest\nTest Score"),
       ],
     );
   }
@@ -322,6 +387,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       context,
                       MaterialPageRoute(
                           builder: (context) => const ResultDetailsScreen()));
+                  final subjectProvider = Provider.of<ResultProvider>(context, listen: false);
+                  subjectProvider.fetchResults();
                 },
                 icon: const Icon(
                   Icons.arrow_forward_ios,
@@ -333,7 +400,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const Padding(
             padding:
-            EdgeInsets.only(left: 50), // Adjust left padding for alignment
+                EdgeInsets.only(left: 50), // Adjust left padding for alignment
             child: Text(
               "Check the test scores you have \nattempted.",
               style: TextStyle(color: Colors.grey),
@@ -364,7 +431,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 value: _isNotificationEnabled,
                 onChanged: (value) {
                   setState(() {
-                    _isNotificationEnabled =value;
+                    _isNotificationEnabled = value;
                   });
                 },
                 activeColor: Colors.white,
@@ -376,7 +443,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const Padding(
             padding:
-            EdgeInsets.only(left: 50), // Adjust left padding for alignment
+                EdgeInsets.only(left: 50), // Adjust left padding for alignment
             child: Text(
               "Turn off the notification if you don’t \nwant to receive.",
               style: TextStyle(color: Colors.grey),
@@ -388,6 +455,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+
   void _showLogoutConfirmation(BuildContext context) {
     showModalBottomSheet(
         backgroundColor: Colors.white,
@@ -447,7 +515,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                           style: OutlinedButton.styleFrom(
                             backgroundColor:
-                            Colors.transparent, // Transparent background
+                                Colors.transparent, // Transparent background
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -489,7 +557,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             child: Row(
                               mainAxisAlignment:
-                              MainAxisAlignment.center, // Centers content
+                                  MainAxisAlignment.center, // Centers content
                               children: [
                                 const SizedBox(width: 8),
                                 const Text(
@@ -518,173 +586,3 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
   }
 }
-// import 'dart:io';
-// import 'package:e_learning_app/screens/profile/result_details_screen.dart';
-// import 'package:flutter/material.dart';
-// import 'package:image_picker/image_picker.dart';
-//
-// import '../login/login_screen.dart';
-//
-// class ProfileScreen extends StatefulWidget {
-//   const ProfileScreen({super.key});
-//
-//   @override
-//   _ProfileScreenState createState() => _ProfileScreenState();
-// }
-//
-// class _ProfileScreenState extends State<ProfileScreen> {
-//   bool _isNotificationEnabled = true;
-//   bool _isEditing = false;
-//   File? _image;
-//   TextEditingController _usernameController = TextEditingController(text: "Prallav Raj");
-//
-//   Future<void> _pickImage() async {
-//     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
-//     if (pickedFile != null) {
-//       setState(() {
-//         _image = File(pickedFile.path);
-//       });
-//     }
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return SafeArea(
-//       child: Scaffold(
-//         backgroundColor: Colors.grey[50],
-//         appBar: AppBar(
-//           backgroundColor: Colors.transparent,
-//           automaticallyImplyLeading: false,
-//           elevation: 0,
-//           actions: _isEditing
-//               ? [
-//             IconButton(
-//               icon: const Icon(Icons.close, color: Colors.blue, size: 40),
-//               onPressed: () => setState(() => _isEditing = false),
-//             ),
-//             const Spacer(),
-//             IconButton(
-//               icon: const Icon(Icons.check, color: Colors.blue, size: 40),
-//               onPressed: () => setState(() => _isEditing = false),
-//             ),
-//           ]
-//               : [
-//             Padding(
-//               padding: const EdgeInsets.only(top: 15, right: 10),
-//               child: IconButton(
-//                 icon: const Icon(Icons.more_vert, color: Colors.blue, size: 40),
-//                 onPressed: () async {
-//                   final value = await showMenu<String>(
-//                     color: Colors.white,
-//                     context: context,
-//                     position: const RelativeRect.fromLTRB(100.0, 70.0, 30.0, 0.0),
-//                     items: const [
-//                       PopupMenuItem<String>(value: 'edit', child: Text('Edit')),
-//                       PopupMenuItem<String>(value: 'logout', child: Text('Logout')),
-//                     ],
-//                   );
-//                   if (value == 'edit') {
-//                     setState(() => _isEditing = true);
-//                   } else if (value == 'logout') {
-//                     _showLogoutConfirmation(context);
-//                   }
-//                 },
-//               ),
-//             ),
-//           ],
-//         ),
-//         body: _buildBody(),
-//       ),
-//     );
-//   }
-//
-//   Widget _buildBody() {
-//     return SingleChildScrollView(
-//       child: Padding(
-//         padding: const EdgeInsets.symmetric(horizontal: 20.0),
-//         child: Center(
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.center,
-//             children: [
-//               const SizedBox(height: 30),
-//               _buildProfilePicture(),
-//               const SizedBox(height: 15),
-//               _isEditing
-//                   ? TextField(
-//                 controller: _usernameController,
-//                 style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-//               )
-//                   : Text(
-//                 _usernameController.text,
-//                 style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-//               ),
-//               const SizedBox(height: 5),
-//               const Text("prallav.raj@gmail.com", style: TextStyle(fontSize: 18, color: Colors.grey)),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-//
-//   Widget _buildProfilePicture() {
-//     return GestureDetector(
-//       onTap: _isEditing ? _pickImage : null,
-//       child: Stack(
-//         alignment: Alignment.center,
-//         children: [
-//           CircleAvatar(
-//             radius: 60,
-//             backgroundImage: _image != null
-//                 ? FileImage(_image!)
-//                 : const AssetImage('assets/icons/result_icon.png') as ImageProvider,
-//             child: _isEditing
-//                 ? ClipOval(
-//               child: Container(
-//                 color: Colors.white.withOpacity(0.4), // Blur effect
-//                 width: double.infinity,
-//                 height: double.infinity,
-//               ),
-//             )
-//                 : null,
-//           ),
-//           if (_isEditing)
-//             Container(
-//               width: 50,
-//               height: 50,
-//               decoration: const BoxDecoration(
-//                 shape: BoxShape.circle,
-//                 color: Colors.blue, // Blue circle around the icon
-//               ),
-//               child: const Icon(
-//                 Icons.camera_alt_outlined,
-//                 color: Colors.white,
-//                 size: 30,
-//               ),
-//             ),
-//         ],
-//       ),
-//     );
-//   }
-//
-//
-//   void _showLogoutConfirmation(BuildContext context) {
-//     showDialog(
-//       context: context,
-//       builder: (ctx) => AlertDialog(
-//         title: const Text("Logout"),
-//         content: const Text("Are you sure you want to logout?"),
-//         actions: [
-//           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
-//           TextButton(
-//             onPressed: () {
-//               Navigator.pop(ctx);
-//               Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-//             },
-//             child: const Text("Logout"),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }

@@ -2,8 +2,8 @@ class Profile {
   final int id;
   final String email;
   final int completerChapterInPercentage;
-  final int averageScore;
-  final int highestScore;
+  final double averageScore;
+  final double highestScore;
   final bool notificationEnabled;
   final String? profileImageUrl;
   final String userName;
@@ -23,9 +23,10 @@ class Profile {
     return Profile(
       id: json['id'],
       email: json['email'],
-      completerChapterInPercentage: _parseInt(json['completerChapterInPercentage']),
-      averageScore: _parseInt(json['testResult']?['averageScore']),
-      highestScore: _parseInt(json['testResult']?['highestScore']),
+      completerChapterInPercentage:
+          _parseInt(json['completerChapterInPercentage']),
+      averageScore: json['testResult']?['averageScore']?? 0,
+      highestScore: json['testResult']?['highestScore']?? 0,
       notificationEnabled: json['notificationEnabled'] ?? false,
       profileImageUrl: json['profileImageUrl'],
       userName: json['userName'] ?? "Unknown",
@@ -38,8 +39,8 @@ class Profile {
       return value;
     }
     if (value is String) {
-      return int.tryParse(value) ?? 0;  // Return 0 if parsing fails
+      return int.tryParse(value) ?? 0; // Return 0 if parsing fails
     }
-    return 0;  // Default value if the value is null or not parsable
+    return 0; // Default value if the value is null or not parsable
   }
 }
