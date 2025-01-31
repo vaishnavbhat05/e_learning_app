@@ -434,8 +434,10 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                 child: OutlinedButton(
                   onPressed: () async {
 
+                    if (isLoading) return;
+
                     setState(() {
-                      isLoading = true;
+                      isLoading = true; // Start loading
                     });
 
                     SharedPreferences prefs =
@@ -476,27 +478,31 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: Row(
+                  child: isLoading
+                      ? const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                      : Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       const SizedBox(width: 80),
                       const Text(
-                              'Begin Test',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 18),
-                            ),
+                        'Begin Test',
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
                       const SizedBox(width: 70),
                       CircleAvatar(
                         backgroundColor: Colors.blue[700],
                         radius: 12,
-                        child: const Icon(Icons.arrow_right_alt_sharp,
-                            color: Colors.white),
+                        child: const Icon(Icons.arrow_right_alt_sharp, color: Colors.white),
                       ),
                     ],
                   ),
                 ),
               ),
-            ),
+            )
           ],
         ),
       ),

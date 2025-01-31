@@ -41,7 +41,6 @@ class _TestScreenState extends State<TestScreen> {
 
   final ValueNotifier<double> _dividerProgress = ValueNotifier<double>(0.0);
   Color _dividerColor = Colors.green;
-  List<int> _selectedOptions = [];
 
   @override
   void initState() {
@@ -94,7 +93,6 @@ class _TestScreenState extends State<TestScreen> {
 
       if (_remainingTime > 0) {
         if (mounted) {
-          // Ensure widget is still active
           setState(() {
             _remainingTime--;
             _dividerProgress.value = _remainingTime / totalTimeInSeconds;
@@ -171,7 +169,7 @@ class _TestScreenState extends State<TestScreen> {
     }
   }
 
-  Widget _buildOptionCard(String option, int index) {
+  Widget _buildOptionCard(String selectedOption, int index) {
     bool isSelected = _selectedOption == index;
     return GestureDetector(
       onTap: () {
@@ -197,7 +195,7 @@ class _TestScreenState extends State<TestScreen> {
             children: [
               const SizedBox(width: 20),
               Text(
-                option,
+                selectedOption,
                 style: TextStyle(
                   color: isSelected ? Colors.blue : Colors.black45,
                   fontSize: 18,
@@ -462,20 +460,13 @@ class _TestScreenState extends State<TestScreen> {
                         ),
                         IconButton(
                           onPressed: () {
-                            if (_selectedOption != -1) {
-                              // Check if an option is selected
-                              // Submit the selected option to the API
-                              Provider.of<TestScreenProvider>(context,
-                                      listen: false)
-                                  .submitAnswer(
-                                widget.testId, // Test ID
-                                currentPage -
-                                    1, // Question ID (currentPage - 1 to get the right index)
-                                _selectedOption, // Selected option
-                              );
-                            }
+                            int selectedOption = _selectedOption == -1 ? 0 : _selectedOption;
 
-                            // Navigate to the next question if available, otherwise submit the test
+                            Provider.of<TestScreenProvider>(context, listen: false).submitAnswer(
+                              widget.testId,
+                              currentPage - 1,
+                              _selectedOption,
+                            );
                             if (currentPage < totalPages) {
                               goToPage(currentPage + 1);
                             } else {

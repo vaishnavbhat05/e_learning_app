@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onSearchChanged(String query) async {
     if (query.length >= 3) {
       final homeProvider = Provider.of<HomeProvider>(context, listen: false);
-      await homeProvider.searchSubjects(query);
+      await homeProvider.searchSubjects(query); // Search for the subjects
       setState(() {
         _suggestions = homeProvider.searchResults.map((subject) => subject.subjectName).toList();
       });
@@ -57,26 +57,26 @@ class _HomeScreenState extends State<HomeScreen> {
       0.5,
     );
   }
-  List<Map<String, String>> staticChapters = [
-    {
-      'subjectName': 'Mathematics',
-      'chapterName': 'Algebra Basics',
-      'completedChapterInPercentage': '25%',
-      'chapterImage': 'assets/images/math_chapter.jpg', // Replace with your image assets
-    },
-    {
-      'subjectName': 'Physics',
-      'chapterName': 'Mechanics',
-      'completedChapterInPercentage': '15%',
-      'chapterImage': 'assets/images/physics_chapter.jpg',
-    },
-    {
-      'subjectName': 'Chemistry',
-      'chapterName': 'Organic Chemistry',
-      'completedChapterInPercentage': '10%',
-      'chapterImage': 'assets/images/chemistry_chapter.jpg',
-    },
-  ];
+  // List<Map<String, String>> staticChapters = [
+  //   {
+  //     'subjectName': 'Mathematics',
+  //     'chapterName': 'Algebra Basics',
+  //     'completedChapterInPercentage': '25%',
+  //     'chapterImage': 'assets/images/math_chapter.jpg', // Replace with your image assets
+  //   },
+  //   {
+  //     'subjectName': 'Physics',
+  //     'chapterName': 'Mechanics',
+  //     'completedChapterInPercentage': '15%',
+  //     'chapterImage': 'assets/images/physics_chapter.jpg',
+  //   },
+  //   {
+  //     'subjectName': 'Chemistry',
+  //     'chapterName': 'Organic Chemistry',
+  //     'completedChapterInPercentage': '10%',
+  //     'chapterImage': 'assets/images/chemistry_chapter.jpg',
+  //   },
+  // ];
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +151,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 40),
-                    // Search Box
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -190,9 +189,42 @@ class _HomeScreenState extends State<HomeScreen> {
                                       );
                                       return;
                                     }
-                                    setState(() => isLoading = true);
-                                    await homeProvider.searchSubjects(keyword);
-                                    setState(() => isLoading = false);
+
+                                    setState(() {
+                                      isLoading = true;
+                                      _suggestions.clear();
+                                    });
+
+                                    final homeProvider = Provider.of<HomeProvider>(context, listen: false);
+                                    try {
+                                      // Clear existing results and perform new search
+                                      homeProvider.searchResults.clear();
+                                      await homeProvider.searchSubjects(keyword);
+
+                                      if (homeProvider.searchResults.isNotEmpty) {
+                                        final subject = homeProvider.searchResults.first;
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => ChapterScreen(
+                                              subjectId: subject.id,
+                                              subjectName: subject.subjectName,
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => const SearchNotFoundScreen()),
+                                        );
+                                      }
+                                    } catch (error) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text("An error occurred, please try again")),
+                                      );
+                                    } finally {
+                                      setState(() => isLoading = false);
+                                    }
                                   },
                                   child: Container(
                                     width: 50,
@@ -209,6 +241,40 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                           ),
+                          if (_suggestions.isNotEmpty)
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(8.0),
+                              margin: const EdgeInsets.only(top: 16.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ListView.builder(
+                                shrinkWrap: true, // Prevent overflow
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: _suggestions.length,
+                                itemBuilder: (context, index) {
+                                  return ListTile(
+                                    title: Text(_suggestions[index]),
+                                    onTap: () {
+                                      setState(() {
+                                        _searchController.text = _suggestions[index];
+                                        _suggestions.clear(); // Clear suggestions after selection
+                                      });
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          const SizedBox(height: 20), // Extra space for better UX when keyboard appears
                         ],
                       ),
                     ),

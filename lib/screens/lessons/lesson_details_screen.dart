@@ -409,11 +409,6 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                                     child: Image.network(
                                       item.contentImg,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) => const Center(
-                                          child: Text(
-                                            'Image not available',
-                                            style: TextStyle(fontSize: 30),
-                                          )),
                                     ),
                                   ),
                                 ),
@@ -508,4 +503,152 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
       ),
     );
   }
+  // Widget _buildContent(Item item) {
+  //   switch (item.contentType) {
+  //     case 'IMAGE':
+  //       return _buildImage(item.contentImg);
+  //     case 'VIDEO':
+  //       return _buildVideo(item.contentVideo);
+  //     case 'AUDIO':
+  //       return _buildAudio(item.contentAudio);
+  //     case 'IMAGEWITHVIDEO':
+  //       return Column(
+  //         children: [
+  //           _buildImage(item.contentImg),
+  //           _buildVideo(item.contentVideo),
+  //         ],
+  //       );
+  //     case 'IMAGEWITHAUDIO':
+  //       return Column(
+  //         children: [
+  //           _buildImage(item.contentImg),
+  //           _buildAudio(item.contentAudio),
+  //         ],
+  //       );
+  //     case 'IMAGEWITHINFO':
+  //       return Column(
+  //         children: [
+  //           _buildImage(item.contentImg),
+  //           _buildInfo(item.contentInfo),
+  //         ],
+  //       );
+  //     case 'VIDEOWITHAUDIO':
+  //       return Column(
+  //         children: [
+  //           _buildVideo(item.contentVideo),
+  //           _buildAudio(item.contentAudio),
+  //         ],
+  //       );
+  //     case 'VIDEOWITHINFO':
+  //       return Column(
+  //         children: [
+  //           _buildVideo(item.contentVideo),
+  //           _buildInfo(item.contentInfo),
+  //         ],
+  //       );
+  //     case 'AUDIOWITHINFO':
+  //       return Column(
+  //         children: [
+  //           _buildAudio(item.contentAudio),
+  //           _buildInfo(item.contentInfo),
+  //         ],
+  //       );
+  //     case 'IMAGEWITHVIDEOAUDIO':
+  //       return Column(
+  //         children: [
+  //           _buildImage(item.contentImg),
+  //           _buildVideo(item.contentVideo),
+  //           _buildAudio(item.contentAudio),
+  //         ],
+  //       );
+  //     case 'IMAGEWITHVIDEOINFO':
+  //       return Column(
+  //         children: [
+  //           _buildImage(item.contentImg),
+  //           _buildVideo(item.contentVideo),
+  //           _buildInfo(item.contentInfo),
+  //         ],
+  //       );
+  //     case 'IMAGEWITHAUDIOINFO':
+  //       return Column(
+  //         children: [
+  //           _buildImage(item.contentImg),
+  //           _buildAudio(item.contentAudio),
+  //           _buildInfo(item.contentInfo),
+  //         ],
+  //       );
+  //     case 'VIDEOWITHAUDIOINFO':
+  //       return Column(
+  //         children: [
+  //           _buildVideo(item.contentVideo),
+  //           _buildAudio(item.contentAudio),
+  //           _buildInfo(item.contentInfo),
+  //         ],
+  //       );
+  //     case 'IMAGEVIDEOAUDIOINFO':
+  //       return Column(
+  //         children: [
+  //           _buildImage(item.contentImg),
+  //           _buildVideo(item.contentVideo),
+  //           _buildAudio(item.contentAudio),
+  //           _buildInfo(item.contentInfo),
+  //         ],
+  //       );
+  //     case 'INFO':
+  //       return _buildInfo(item.contentInfo);
+  //     default:
+  //       return const Center(child: Text('Content not available'));
+  //   }
+  // }
+  // Widget _buildImage(String imageUrl) {
+  //   return Center(
+  //     child: Container(
+  //       height: 200,
+  //       width: 360,
+  //       decoration: BoxDecoration(
+  //         color: Colors.black38,
+  //         borderRadius: BorderRadius.circular(20),
+  //       ),
+  //       child: ClipRRect(
+  //         borderRadius: BorderRadius.circular(20),
+  //         child: Image.network(
+  //           imageUrl,
+  //           fit: BoxFit.cover,
+  //           errorBuilder: (context, error, stackTrace) => const Center(
+  //               child: Text(
+  //                 'Image not available',
+  //                 style: TextStyle(fontSize: 30),
+  //               )),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+  //
+  // Widget _buildVideo(String videoUrl) {
+  //   return Container(
+  //     height: 200,
+  //     width: 360,
+  //     child: Center(child: Text('Video Placeholder')), // Replace with Video Player widget
+  //   );
+  // }
+  //
+  // Widget _buildAudio(String audioUrl) {
+  //   return Container(
+  //     height: 100,
+  //     width: 360,
+  //     child: Center(child: Text('Audio Placeholder')), // Replace with Audio Player widget
+  //   );
+  // }
+  //
+  // Widget _buildInfo(String infoText) {
+  //   return Padding(
+  //     padding: const EdgeInsets.all(10),
+  //     child: Text(
+  //       infoText,
+  //       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  //     ),
+  //   );
+  // }
+
 }

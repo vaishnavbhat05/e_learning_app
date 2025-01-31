@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/api/api_handler.dart';
 import '../../../data/api/endpoints.dart';
 import '../../../data/model/test_result.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class TestScreenProvider extends ChangeNotifier {
   TestResult? testResult;
@@ -20,43 +22,59 @@ class TestScreenProvider extends ChangeNotifier {
 
   //SUBMIT ANSWER API//
 
-  Future<void> submitAnswer(int questionId, int testId, int selectedOption) async {
+  Future<void> submitAnswer(int selectedOption, int questionId, int testId) async {
     isLoading = true;
     notifyListeners();
 
-    // try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? accessToken = prefs.getString('accessToken');
+    // Get the access token from SharedPreferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? accessToken = prefs.getString('accessToken');
 
-      if (accessToken == null) {
-        print('Access token is null, cannot submit test');
-        isLoading = false;
-        notifyListeners();
-        return;
-      }
+    if (accessToken == null) {
+      print('Access token is null, cannot submit test');
+      isLoading = false;
+      notifyListeners();
+      return;
+    }
 
-      final response = await apiHandler.postRequest(
-        '/questions/$questionId/test/$testId',
-        {
-          'selectedOption': selectedOption,
-        },
+
+    print('Request payload: {"selectedOption": $selectedOption}');
+
+    final url = Uri.parse('http://16.170.246.37:8080/api/v1/questions/$questionId/test/$testId');
+
+    try {
+      final response = await http.post(
+        url,
         headers: {
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',
         },
+        body: json.encode({
+          'selectedOption': selectedOption,
+        }),
       );
 
-      print(response);
-      if (response != null && response['status'] == 0) {
-        print('Test submitted successfully for question $questionId and test $testId.');
+      // Check if the response is successful
+      if (response.statusCode == 200) {
+        print('Test submitted successfully');
+        // Handle success response here, for example, parse the response body
+        var responseData = json.decode(response.body);
+        print('Response: $responseData');
       } else {
-        print('Failed to submit test: ${response?['message']}');
+        print('Failed to submit answer. Status code: ${response.statusCode}');
+        // Handle error response here
+        var errorResponse = json.decode(response.body);
+        print('Error response: $errorResponse');
       }
-    // } catch (e) {
-    //   print('Error submitting test: $e');}
-      isLoading = false;
-      notifyListeners();
+    } catch (e) {
+      print('Error during POST request: $e');
+      // Handle any errors that might occur during the request
+    }
+
+    isLoading = false;
+    notifyListeners();
   }
+
 
 
   // SUBMIT TEST API//
