@@ -1,9 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/model/register.dart';
-import '../../../data/api/api_handler.dart'; // Make sure ApiHandler is imported
-import '../../../data/api/endpoints.dart'; // Import Endpoints class
+import '../../../data/api/api_handler.dart';
+import '../../../data/api/endpoints.dart';
 import '../../verify_account/verify_account_screen.dart';
 
 class RegisterProvider with ChangeNotifier {
@@ -17,10 +16,6 @@ class RegisterProvider with ChangeNotifier {
     ApiHandler apiHandler = ApiHandler(); // Initialize ApiHandler instance
 
     try {
-      // Debugging: print the data before making the request
-      print("Sending registration data: ${model.toJson()}");
-
-      // Use the endpoint from the Endpoints class
       final response = await apiHandler.postRequest(
         Endpoints.sendRegOtp, // Updated to use the endpoint constant
         {
@@ -40,6 +35,9 @@ class RegisterProvider with ChangeNotifier {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => VerifyAccountScreen(
+            password: model.password,
+            userName: model.userName,
+            email:model.email,
           ),),
         );
       } else {

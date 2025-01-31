@@ -13,7 +13,7 @@ class SubjectProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // Function to fetch subjects
+  // Function to fetch subjects and save first subject ID by default
   Future<void> fetchSubjects() async {
     _isLoading = true;
     _errorMessage = null;
@@ -31,14 +31,22 @@ class SubjectProvider extends ChangeNotifier {
         notifyListeners();
         return;
       }
+
+
       final responseBody = await apiHandler.getRequest(
         Endpoints.subjects,
         headers: {'Authorization': 'Bearer $accessToken'},
       );
-      // If the response is successful, update the subjects list
+
+
+      // Check response and update subjects
       if (responseBody != null && responseBody['status'] == 0) {
         List<dynamic> subjectsList = responseBody['data']['subjects'];
         _subjects = subjectsList.map((subject) => SubjectModel.fromJson(subject)).toList();
+
+        // Save the first subject ID to SharedPreferences if available
+        if (_subjects.isNotEmpty) {
+        }
       } else {
         _errorMessage = responseBody['message'] ?? 'Failed to load subjects.';
       }

@@ -10,7 +10,13 @@ import '../../data/model/register.dart';
 import '../register/provider/register_provider.dart';
 
 class VerifyAccountScreen extends StatefulWidget {
-  const VerifyAccountScreen({
+  final String userName;
+  final String email;
+  final String password;
+  VerifyAccountScreen({
+    required this.userName,
+    required this.email,
+    required this.password,
     super.key,
   });
 
@@ -24,19 +30,25 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
       List.generate(4, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
   bool _allFieldsFilled = false;
-  String? userName;
-  String? email;
   String? password;
   bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
+    _loadPassword();
     for (var controller in _controllers) {
       controller.addListener(_checkAllFieldsFilled);
     }
   }
 
+  void _loadPassword() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      password = prefs.getString('password'); // Retrieve stored password
+    });
+  }
   void _checkAllFieldsFilled() {
     setState(() {
       _allFieldsFilled =
@@ -47,24 +59,22 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
       print('All fields filled: $_allFieldsFilled');
     }
   }
-  Future<void> _getUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      userName = prefs.getString('userName');
-      email = prefs.getString('email');
-      password = prefs.getString('password');
-    });
-  }
   void _resendOtp() async {
+    print("Password: $password");
+    if (password == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password is missing! Please try again.')),
+      );
+      return; // Stop execution if password is null
+    }
+
     final provider = Provider.of<RegisterProvider>(context, listen: false);
 
-    // Create a new Register model with the existing details
     final registerModel = Register(
-      userName: userName!,
-      email: email!,
-      password: password!,
+      userName: widget.userName,
+      email: widget.email,
+      password: widget.password, // Safe because we checked for null above
     );
-
     try {
       await provider.registerUser(registerModel, context);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -91,6 +101,7 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
   }
 
   void _onVerifyPressed() async {
+
     if (_allFieldsFilled) {
       // Concatenate OTP from the controllers
       String otp = _controllers.map((controller) => controller.text).join();
@@ -100,7 +111,8 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
           Provider.of<VerifyAccountProvider>(context, listen: false);
 
       setState(() {
-        _isLoading = true; // Set loading to true
+        _isLoading = true;
+        _errorMessage = 'Invalid verification code';
       });
       try {
         await provider.verifyAccount(otp, context);
@@ -160,11 +172,13 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 60),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(4, (index) {
+                        bool isError = _errorMessage != null;
                         return Container(
                           margin: const EdgeInsets.symmetric(horizontal: 8),
                           width: 70,
@@ -172,9 +186,7 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             border: Border.all(
-                                color: _focusNodes[index].hasFocus
-                                    ? Colors.blue
-                                    : Colors.transparent,
+                                color: isError ? Colors.red : (_focusNodes[index].hasFocus ? Colors.blue : Colors.transparent),
                                 width: 2),
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -210,31 +222,52 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
                         );
                       }),
                     ),
-                    const SizedBox(height: 30),
+                    // Display error message if OTP is invalid
+                    if (_errorMessage != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0,left: 45),
+                        child: Row(
+                          children:[
+                            const Icon(Icons.error,color: Colors.red,),
+                             const SizedBox(width: 5,),
+                             Text(
+                               _errorMessage!,
+                               style: const TextStyle(
+                                 color: Colors.redAccent,
+                                 fontSize: 20,
+                               ),
+                             ),
+                            ],
+                        ),
+                      ),
+                    const SizedBox(height: 20),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text.rich(
-                          TextSpan(
-                            style: const TextStyle(
-                              fontSize: 20,
-                              color: Colors.grey,
-                            ),
-                            children: [
-                              const TextSpan(text: "Didn't receive a code? "),
-                              TextSpan(
-                                text: "Resend",
-                                style: const TextStyle(
-                                  color: Colors.blue,
-                                  fontWeight: FontWeight.bold,
-                                  decoration: TextDecoration.underline,
-                                ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    _resendOtp();
-                                  },
+                        Padding(
+                          padding: const EdgeInsets.only(left: 50),
+                          child: Text.rich(
+                            TextSpan(
+                              style: const TextStyle(
+                                fontSize: 20,
+                                color: Colors.grey,
                               ),
-                            ],
+                              children: [
+                                const TextSpan(text: "Didn't receive a code? "),
+                                TextSpan(
+                                  text: "Resend",
+                                  style: const TextStyle(
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      _resendOtp();
+                                    },
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],

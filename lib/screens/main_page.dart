@@ -19,7 +19,7 @@ class _MainPageState extends State<MainPage> {
   int currentIndex = 0;
   final screens = [
     const HomeScreen(),
-    SubjectsScreen(),
+    const SubjectsScreen(),
     const ProfileScreen(),
   ];
 

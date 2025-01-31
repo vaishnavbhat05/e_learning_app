@@ -1,7 +1,7 @@
 class Profile {
   final int id;
   final String email;
-  final int completerChapterInPercentage;
+  final double completerChapterInPercentage;
   final double averageScore;
   final double highestScore;
   final bool notificationEnabled;
@@ -24,7 +24,7 @@ class Profile {
       id: json['id'],
       email: json['email'],
       completerChapterInPercentage:
-          _parseInt(json['completerChapterInPercentage']),
+      _parseDouble(json['completerChapterInPercentage']),
       averageScore: json['testResult']?['averageScore']?? 0,
       highestScore: json['testResult']?['highestScore']?? 0,
       notificationEnabled: json['notificationEnabled'] ?? false,
@@ -33,14 +33,16 @@ class Profile {
     );
   }
 
-  // Helper function to safely parse an integer
-  static int _parseInt(dynamic value) {
-    if (value is int) {
+  static double _parseDouble(dynamic value) {
+    if (value is double) {
       return value;
     }
-    if (value is String) {
-      return int.tryParse(value) ?? 0; // Return 0 if parsing fails
+    if (value is int) {
+      return value.toDouble();
     }
-    return 0; // Default value if the value is null or not parsable
+    if (value is String) {
+      return double.tryParse(value) ?? 0.0; // Return 0.0 if parsing fails
+    }
+    return 0.0; // Default value if the value is null or not parsable
   }
 }

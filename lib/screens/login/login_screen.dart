@@ -3,6 +3,7 @@ import 'package:e_learning_app/screens/login/provider/login_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../data/model/login.dart';
+import '../profile/provider/profile_provider.dart';
 import '../register/register_screen.dart';
 import '../../common_widgets/custom_text_field.dart';
 
@@ -36,6 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
+
         body: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,10 +129,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   loginModel,
                                   context,
                                 );
-
                                 setState(() {
                                   _isLoading = false; // Hide loading indicator
                                 });
+                                final profileProvider =
+                                Provider.of<ProfileProvider>(context, listen: false);
+                                final profile = profileProvider.profile;
+                                await profileProvider.fetchProfile(profile?.id ?? 0);
                               }
                                   : null,
                               child: Container(
@@ -168,7 +173,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
-                                    const ForgotPasswordScreen()));
+                                    ForgotPasswordScreen()));
                           },
                           child: const Text(
                             "Forgot Password",

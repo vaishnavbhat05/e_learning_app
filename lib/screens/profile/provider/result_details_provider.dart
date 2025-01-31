@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart'; // For token storag
 
 class ResultProvider with ChangeNotifier {
   bool _isLoading = false;
+  String? _errorMessage;
 
   List<ResultDetails>? _results;
 
@@ -18,34 +19,34 @@ class ResultProvider with ChangeNotifier {
 
   final ApiHandler apiHandler = ApiHandler();
 
+  //RESULT DETAILS API//
+
+
   Future<void> fetchResults() async {
     _setLoading(true);
 
     try {
-      // Get the access token from SharedPreferences (or any storage method)
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
 
       String? accessToken =
-          prefs.getString('accessToken'); // Assuming 'accessToken' key
+          prefs.getString('accessToken');
 
+      print(accessToken);
       if (accessToken == null) {
         print('Access token is null, cannot fetch results');
 
         return;
       }
 
-      // Set the Authorization header with the token
-
       final response = await apiHandler.getRequest(
-        Endpoints.result, // Replace with your actual endpoint for results
+        Endpoints.result,
 
         headers: {
-          'Authorization': 'Bearer $accessToken', // Add Authorization header
+          'Authorization': 'Bearer $accessToken',
         },
       );
 
-      // Check if response is valid and contains 'data'
 
       if (response != null &&
           response['status'] == 0 &&
@@ -73,40 +74,48 @@ class ResultProvider with ChangeNotifier {
 
     notifyListeners();
   }
-  Future<void> fetchResultsSubject(int subjectId) async {
-    _setLoading(true);
 
-    try {
-      // Get the access token from SharedPreferences (or any storage method)
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? accessToken = prefs.getString('accessToken'); // Assuming 'accessToken' key
 
-      if (accessToken == null) {
-        print('Access token is null, cannot fetch results');
-        return;
-      }
 
-      // Set the Authorization header with the token
-      final response = await apiHandler.getRequest(
-      Endpoints.getResultSubjects(subjectId), // Add the subjectId to the API endpoint
-        headers: {
-          'Authorization': 'Bearer $accessToken', // Add Authorization header
-        },
-      );
-
-      // Check if response is valid and contains 'data'
-      if (response != null && response['status'] == 0 && response['data'] != null) {
-        _results = List<ResultDetails>.from(
-            response['data'].map((item) => ResultDetails.fromJson(item)));
-        notifyListeners();
-      } else {
-        print('Error fetching results or response is null');
-      }
-    } catch (e) {
-      print('Error: $e');
-    } finally {
-      _setLoading(false);
-    }
-  }
+  // Future<void> fetchResultsSubject(int subjectId) async {
+  //   _setLoading(true);
+  //
+  //   try {
+  //     // Get the access token from SharedPreferences (or any storage method)
+  //     SharedPreferences prefs = await SharedPreferences.getInstance();
+  //     String? accessToken = prefs.getString('accessToken');
+  //     if (accessToken == null) {
+  //       print('Access token is null, cannot fetch results');
+  //       return;
+  //     }
+  //
+  //     // Set the Authorization header with the token
+  //     final response = await apiHandler.getRequest(
+  //     Endpoints.getResultSubjects(subjectId), // Add the subjectId to the API endpoint
+  //       headers: {
+  //         'Authorization': 'Bearer $accessToken', // Add Authorization header
+  //       },
+  //     );
+  //
+  //     if (response != null && response['status'] == 0) {
+  //       if (response['data'] != null && response['data'].isNotEmpty) {
+  //         _results = List<ResultDetails>.from(
+  //           response['data'].map((item) => ResultDetails.fromJson(item)),
+  //         );
+  //         _errorMessage = null; // Clear error message as data is available
+  //       } else {
+  //         _results = []; // Empty list if no results
+  //         _errorMessage = response['message'] ?? "No results available.";
+  //       }
+  //     } else {
+  //       _errorMessage = response?['message'] ?? "Something went wrong.";
+  //       _results = [];
+  //     }
+  //   } catch (e) {
+  //     print('Error: $e');
+  //   } finally {
+  //     _setLoading(false);
+  //   }
+  // }
 
 }

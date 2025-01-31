@@ -1,11 +1,15 @@
-import 'dart:convert';
-
 class TestQuestions {
+  final int testId;
+  final int chapterIndex;
+  final int lessonIndex;
   final String testName;
   final int totalQuestions;
   final List<QuestionModel> questions;
 
   TestQuestions({
+    required this.testId,
+    required this.chapterIndex,
+    required this.lessonIndex,
     required this.testName,
     required this.totalQuestions,
     required this.questions,
@@ -14,6 +18,9 @@ class TestQuestions {
   // Factory method to create TestQuestions from JSON
   factory TestQuestions.fromJson(Map<String, dynamic> json) {
     return TestQuestions(
+      testId: json['testId'],
+      chapterIndex: json['chapterIndex'],  // Add this line
+      lessonIndex: json['lessonIndex'],    // Add this line
       testName: json['testName'],
       totalQuestions: json['totalQuestions'],
       questions: List<QuestionModel>.from(
@@ -22,6 +29,7 @@ class TestQuestions {
     );
   }
 }
+
 
 class QuestionModel {
   final int id;

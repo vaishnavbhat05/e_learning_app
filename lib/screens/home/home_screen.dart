@@ -1,9 +1,13 @@
-import 'package:shared_preferences/shared_preferences.dart';
-
-import '../home/search_not_found_screen.dart';
-import '../home/notifications_screen.dart';
-import '../home/currently_studying_card.dart';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../chapters/chapter_screen.dart';
+import '../home/notifications_screen.dart';
+import '../home/search_not_found_screen.dart';
+import '../profile/provider/profile_provider.dart';
+import 'currently_studying_card.dart';
+import 'provider/home_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,83 +17,66 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String userName = '';
-  bool isFirstTime = false;
-  List<Map<String, dynamic>> studyCards = [];
+  final TextEditingController _searchController = TextEditingController();
+  List<String> _suggestions = [];
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
-  }
-
-  Future<void> _loadUserData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    setState(() {
-      userName = prefs.getString('userName') ?? 'Guest';
-
-      // Check if the app is opened for the first time
-      isFirstTime = prefs.getBool('isFirstTime') ?? true;
-
-      // Set default study card values based on first-time status
-      if (isFirstTime) {
-        studyCards = [
-          {
-            'subject': 'Geography',
-            'title': 'Elements of Physical Geography',
-            'progress': 0,
-            'color': Colors.pink.shade200,
-            'icon': Icons.map,
-          },
-          {
-            'subject': 'Mathematics',
-            'title': 'Pairs of Angles in Two Words',
-            'progress': 0,
-            'color': Colors.blue.shade200,
-            'icon': Icons.calculate,
-          },
-          {
-            'subject': 'Biology',
-            'title': 'Plants and Animals',
-            'progress': 0,
-            'color': Colors.teal.shade200,
-            'icon': Icons.bubble_chart,
-          },
-        ];
-
-        // Mark that the user has opened the app at least once
-        prefs.setBool('isFirstTime', false);
-      } else {
-        studyCards = [
-          {
-            'subject': 'Geography',
-            'title': 'Elements of Physical Geography',
-            'progress': 86,
-            'color': Colors.pink.shade200,
-            'icon': Icons.map,
-          },
-          {
-            'subject': 'Mathematics',
-            'title': 'Pairs of Angles in Two Words',
-            'progress': 60,
-            'color': Colors.blue.shade200,
-            'icon': Icons.calculate,
-          },
-          {
-            'subject': 'Biology',
-            'title': 'Plants and Animals',
-            'progress': 76,
-            'color': Colors.teal.shade200,
-            'icon': Icons.bubble_chart,
-          },
-        ];
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final homeProvider = context.read<HomeProvider>();
+      homeProvider.fetchCurrentlyStudyingChapters().then((_) {
+        if (homeProvider.currentlyStudyingChapters.isEmpty) {
+          homeProvider.fetchRecommendedChapters(); // Ensure this method exists
+        }
+      });
     });
-
-    print('Loaded userName: $userName');
-    print('Is first time: $isFirstTime');
   }
+
+  void _onSearchChanged(String query) async {
+    if (query.length >= 3) {
+      final homeProvider = Provider.of<HomeProvider>(context, listen: false);
+      await homeProvider.searchSubjects(query);
+      setState(() {
+        _suggestions = homeProvider.searchResults.map((subject) => subject.subjectName).toList();
+      });
+    } else {
+      setState(() {
+        _suggestions.clear();
+      });
+    }
+  }
+
+  Color getFixedColorForCard(int index) {
+    Random random = Random(index);
+    return Color.fromRGBO(
+      random.nextInt(150) + 50,
+      random.nextInt(150) + 50,
+      random.nextInt(150) + 50,
+      0.5,
+    );
+  }
+  List<Map<String, String>> staticChapters = [
+    {
+      'subjectName': 'Mathematics',
+      'chapterName': 'Algebra Basics',
+      'completedChapterInPercentage': '25%',
+      'chapterImage': 'assets/images/math_chapter.jpg', // Replace with your image assets
+    },
+    {
+      'subjectName': 'Physics',
+      'chapterName': 'Mechanics',
+      'completedChapterInPercentage': '15%',
+      'chapterImage': 'assets/images/physics_chapter.jpg',
+    },
+    {
+      'subjectName': 'Chemistry',
+      'chapterName': 'Organic Chemistry',
+      'completedChapterInPercentage': '10%',
+      'chapterImage': 'assets/images/chemistry_chapter.jpg',
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +84,6 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         backgroundColor: Colors.grey[100],
         appBar: AppBar(
-          automaticallyImplyLeading: false,
           backgroundColor: Colors.transparent,
           elevation: 0,
           title: Row(
@@ -136,126 +122,142 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Text(
-                    'Hi, $userName',
-                    style: const TextStyle(
-                        fontSize: 32,
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Center(
-                  child: Text(
-                    'What would you like to study today?',
-                    style: TextStyle(fontSize: 22, color: Colors.black54),
-                  ),
-                ),
-                const Center(
-                  child: Text(
-                    'You can search below.',
-                    style: TextStyle(fontSize: 22, color: Colors.black54),
-                  ),
-                ),
-                const SizedBox(height: 40),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Container(
-                    width: double.infinity,
-                    height: 70,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          blurRadius: 6,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+        body: Consumer2<ProfileProvider, HomeProvider>(
+          builder: (context, profileProvider, homeProvider, child) {
+            final profile = profileProvider.profile;
+            final isCurrentlyStudyingAvailable = homeProvider.currentlyStudyingChapters.isNotEmpty;
+            final chapterList = isCurrentlyStudyingAvailable
+                ? homeProvider.currentlyStudyingChapters
+                : homeProvider.recommendedChapters;
+
+
+            return SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Text(
+                        'Hi, ${profile?.userName ?? "Guest"}',
+                        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                      ),
                     ),
-                    child: Row(
-                      children: [
-                        const Expanded(
-                          child: TextField(
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              contentPadding:
-                                  EdgeInsets.symmetric(vertical: 16),
+                    const SizedBox(height: 20),
+                    const Center(
+                      child: Text(
+                        'What would you like to study today?',
+                        style: TextStyle(fontSize: 22, color: Colors.black54),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    // Search Box
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _searchController,
+                                    onChanged: _onSearchChanged,
+                                    decoration: const InputDecoration(
+                                      hintText: 'Search subjects...',
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () async {
+                                    final keyword = _searchController.text.trim();
+                                    if (keyword.isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text("Please enter a search keyword")),
+                                      );
+                                      return;
+                                    }
+                                    setState(() => isLoading = true);
+                                    await homeProvider.searchSubjects(keyword);
+                                    setState(() => isLoading = false);
+                                  },
+                                  child: Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue,
+                                      borderRadius: BorderRadius.circular(13),
+                                    ),
+                                    child: isLoading
+                                        ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                                        : const Icon(Icons.search, color: Colors.white, size: 30),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      const SearchNotFoundScreen()),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0),
+                      child: Text(
+                        isCurrentlyStudyingAvailable ? 'CURRENTLY STUDYING' : 'RECOMMENDED',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: SizedBox(
+                        height: 320,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: chapterList.length,
+                          itemBuilder: (context, index) {
+                            var chapter = chapterList[index];
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChapterScreen(
+                                      subjectId: chapter['subjectId'],
+                                      subjectName: chapter['subjectName'],
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: StudyCard(
+                                subject: chapter['subjectName'],
+                                title: chapter['chapterName']??"",
+                                progress: chapter['completedChapterInPercentage']??0.0,
+                                color: getFixedColorForCard(index),
+                                imageUrl: chapter['chapterImage']??"",
+                              ),
                             );
                           },
-                          child: Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: Colors.blue,
-                              borderRadius: BorderRadius.circular(13),
-                            ),
-                            child: const Icon(
-                              Icons.search,
-                              color: Colors.white,
-                              size: 30,
-                            ),
-                          ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(height: 40),
-                Padding(
-                  padding: const EdgeInsets.only(left: 16.0),
-                  child: Text(
-                    isFirstTime ? 'RECOMMENDED':'CURRENTLY STUDYING',
-                    style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black54),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SizedBox(
-                    height: 320,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: studyCards.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 10.0),
-                          child: StudyCard(
-                            subject: studyCards[index]['subject'],
-                            title: studyCards[index]['title'],
-                            progress: studyCards[index]['progress'],
-                            color: studyCards[index]['color'],
-                            icon: studyCards[index]['icon'],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );

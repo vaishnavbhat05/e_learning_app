@@ -16,14 +16,54 @@ class Endpoints {
   static const String subjects = '/subjects';
 
   static String getTestsQuestions(int testId) {
-    return '/questions/$testId';
+    return '/questions/test/$testId';
   }
 
-  static const String edit = '/profile-update';
+  // static String submitTest(int testId) {
+  //   return '/tests/{testId}/submit';
+  // }
+
+  static const String edit = '$baseUrl/profile-update';
 
   static const String result = '/results';
 
   static String getResultSubjects(int subjectId) {
     return '/results/subject/$subjectId';
   }
+
+  static String getStudyingProgress(int subjectId) {
+    return '/user/study-progress/subjects/$subjectId';
+  }
+
+  static String getChapters(int subjectId) {
+    return '/chapters/subject/$subjectId';
+  }
+
+  static String getLessonByChapters(int chapterId) {
+    return '/lesson-by-chapter/chapter/$chapterId';
+  }
+
+  static String getlessonDetails(int chapterId,int lessonId) {
+    return '/topics/chapter/$chapterId/lessons/$lessonId';
+  }
+
+  static String getTopicContents(int topicId,int lessonId,int pageNumber) {
+    return '/content/topics/$topicId/lesson/$lessonId?pageNumber=$pageNumber';
+  }
+
+  static String getFavourite(int topicId) {
+    return '/liked-topics/toggle/topic/$topicId';
+  }
+
+  static String topicViewed(int topicId) {
+    return '/user/study-progress/viewed/topic/$topicId';
+  }
+
+  static String topicCompleted(int topicId) {
+    return '/user/study-progress/topic/$topicId/completed';
+  }
+
+
+  static const String logout = '/logout';
+
 }
