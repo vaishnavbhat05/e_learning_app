@@ -66,7 +66,7 @@ class ApiHandler {
     }
   }
 
-  Future<dynamic> putRequest(String endpoint, {Map<String, String>? headers}) async {
+  Future<dynamic> putRequest(String endpoint ,Map<String, dynamic> body, {Map<String, String>? headers}) async {
     try {
       String? accessToken = await _getAccessToken();
       headers ??= {'Content-Type': 'application/json'};
@@ -77,6 +77,7 @@ class ApiHandler {
       final response = await http.put(
         Uri.parse('${Endpoints.baseUrl}$endpoint'),
         headers: headers,
+        body: jsonEncode(body),
       );
 
       // If unauthorized (401), attempt to refresh the access token and retry the request

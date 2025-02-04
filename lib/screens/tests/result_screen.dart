@@ -21,6 +21,7 @@ class ResultScreen extends StatefulWidget {
   final int totalTime;
   final int subjectId;
   final String subjectName;
+  final int selectedQuestionIndex;
   final bool isTimeout;
 
   const ResultScreen({
@@ -33,6 +34,7 @@ class ResultScreen extends StatefulWidget {
     required this.subjectId,
     required this.subjectName,
     required this.isTimeout,
+    required this.selectedQuestionIndex,
   });
 
   @override
@@ -40,19 +42,10 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> {
-  bool isTimeout = false;
 
   @override
   void initState() {
     super.initState();
-    _loadTimeoutStatus();
-  }
-
-  Future<void> _loadTimeoutStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      isTimeout = prefs.getBool('isTimeout') ?? false;
-    });
   }
 
   @override
@@ -90,9 +83,6 @@ class _ResultScreenState extends State<ResultScreen> {
               return const Center(child: CircularProgressIndicator());
             }
 
-            if (provider.errorMessage.isNotEmpty) {
-              return Center(child: Text(provider.errorMessage));
-            }
             Object securedPercentage = provider.testResult?.securedMarksInPercentage ?? '0%';
 
             String securedPercentageStr = securedPercentage.toString().replaceAll('%', '').trim();
@@ -151,7 +141,7 @@ class _ResultScreenState extends State<ResultScreen> {
                               //   ),
                               // ),
                               Text(
-                                '${provider.testResult?.securedMarksInPercentage}',
+                                provider.testResult?.securedMarksInPercentage?? '0%',
                                 style: const TextStyle(
                                   fontSize: 32,
                                   fontWeight: FontWeight.bold,
@@ -160,7 +150,7 @@ class _ResultScreenState extends State<ResultScreen> {
                               ),
                               const SizedBox(height: 10), // Space between percentage and X of Y text
                               Text(
-                                '${provider.testResult?.totalNumberOfQuestionsAttempted ?? 0} of ${provider.testResult?.totalNumbersOfQuestions ?? 0}',
+                                '${provider.testResult?.totalNumberOfQuestionsAttempted ?? 0} of ${provider.testResult?.totalNumbersOfQuestions ?? 5}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey,
@@ -195,7 +185,7 @@ class _ResultScreenState extends State<ResultScreen> {
                     const SizedBox(height: 140),
                     Text(
                       provider.testResult?.remarksComment ??
-                          'No remarks available',
+                          '',
                       style: const TextStyle(
                           fontSize: 28, fontWeight: FontWeight.bold),
                     ),
@@ -204,7 +194,7 @@ class _ResultScreenState extends State<ResultScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Text(
                         provider.testResult?.remarkSubComment ??
-                            'No additional comments.',
+                            'You are 5 correct questions away from 100%',
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontSize: 22, color: Colors
                             .grey),
@@ -220,7 +210,7 @@ class _ResultScreenState extends State<ResultScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                              isTimeout
+                              widget.isTimeout
                                   ? ChapterDetailsScreen(chapterId: widget.chapterId,lessonId:widget.lessonId,subjectId: widget.subjectId,subjectName: widget.subjectName, topicId: widget.topicId,)
                                   : TestScreen(
                                 topicId: widget.topicId,
@@ -229,6 +219,7 @@ class _ResultScreenState extends State<ResultScreen> {
                                   testId: widget.testId,
                                   totalTime: widget.totalTime,subjectName: widget.subjectName,
                                 subjectId: widget.subjectId,
+                                selectedQuestionIndex: widget.selectedQuestionIndex,
                               ),
                             ),
                           );
@@ -242,15 +233,15 @@ class _ResultScreenState extends State<ResultScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            isTimeout
+                            widget.isTimeout
                                 ? const SizedBox(width: 80)
                                 : const SizedBox(width: 110),
                             Text(
-                              isTimeout ? 'Take a New Test' : 'Try Again',
+                              widget.isTimeout ? 'Take a New Test' : 'Try Again',
                               style: const TextStyle(
                                   fontSize: 18, color: Colors.white),
                             ),
-                            isTimeout
+                            widget.isTimeout
                                 ? const SizedBox(width: 60)
                                 : const SizedBox(width: 90),
                             CircleAvatar(

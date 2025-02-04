@@ -34,6 +34,7 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
   bool showLessons = true;
   bool isLoading = false;
 
+
   Future<void> _refreshContent() async {
     await Provider.of<ChapterProvider>(context, listen: false)
         .fetchLessonDetails(widget.chapterId,widget.lessonId);
@@ -64,6 +65,9 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                   subjectId: widget.subjectId,
                   subjectName: widget.subjectName,
                 ),
+                settings: RouteSettings(
+                  arguments: widget.chapterId,
+                ),
               ),
             );
           },
@@ -78,9 +82,9 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
       ),
       body: Consumer<ChapterProvider>(
         builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          // if (provider.isLoading) {
+          //   return const Center(child: CircularProgressIndicator());
+          // }
 
           var lessons = provider.lessons;
 
@@ -152,10 +156,14 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                     const SizedBox(height: 30),
                     Expanded(
                       child: showLessons
-                          ? _buildLessonsContent(
-                              lesson.topics) // Pass the topics from the lesson
-                          : _buildTestsContent(),
+                          ? provider.isLoading
+                          ? const Center(child: CircularProgressIndicator()) // Loader for Lessons
+                          : _buildLessonsContent(lesson.topics) // Pass the topics from the lesson
+                          : provider.isLoading // Assuming you have a loading state for tests
+                          ? const Center(child: CircularProgressIndicator()) // Loader for Tests
+                          : _buildTestsContent(), // Content for the Tests Tab
                     ),
+
                   ],
                 ),
               ),
@@ -352,6 +360,19 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
       },
     );
   }
+  Map<int, bool> loadingTests = {}; // Track loading state for each test
+
+  void _startLoading(int testId) {
+    setState(() {
+      loadingTests[testId] = true;
+    });
+  }
+
+  void _stopLoading(int testId) {
+    setState(() {
+      loadingTests[testId] = false;
+    });
+  }
 
   Widget _buildTestCard(
       TestModel test,
@@ -361,151 +382,151 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
       String testDescription,
       Color color,
       bool isCurrentContent) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 30),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20), // Rounded corners
-        border: Border.all(
-          color: Colors.white, // Light border color
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade200, // Subtle shadow color
-            blurRadius: 8, // Slight blur for shadow
-            offset: const Offset(0, 4), // Shadow offset
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 30),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20), // Rounded corners
+            border: Border.all(
+              color: Colors.white, // Light border color
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.shade200, // Subtle shadow color
+                blurRadius: 8, // Slight blur for shadow
+                offset: const Offset(0, 4), // Shadow offset
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-            vertical: 20, horizontal: 20), // Padding inside the card
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16), // Padding inside the card
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundColor: color,
-                  radius: 35,
-                  child: const Icon(Icons.eco,
-                      color: Colors.white, size: 32), // Icon
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        level,
-                        style: const TextStyle(
-                            color: Colors.blue,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: color,
+                      radius: 35,
+                      child: const Icon(Icons.eco, color: Colors.white, size: 32), // Icon
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            level,
+                            style: const TextStyle(
+                                color: Colors.blue,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                // Subtitle in the middle
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.grey, fontSize: 18),
+                  textAlign: TextAlign.start,
+                ),
+                const SizedBox(height: 20),
+                // Button at the bottom
+                SizedBox(
+                  height: 60,
+                  width: 320,
+                  child: Material(
+                    shadowColor: Colors.blue[300],
+                    borderRadius: BorderRadius.circular(10),
+                    child: OutlinedButton(
+                      onPressed: () async {
+                        if (loadingTests[test.id] == true) return; // Prevent multiple taps
+
+                        _startLoading(test.id); // Start loading for this test
+
+                        SharedPreferences prefs = await SharedPreferences.getInstance();
+                        await prefs.setInt('testId', test.id);
+                        await prefs.remove('remainingTime');
+                        await prefs.remove('isTimeout');
+                        await prefs.setInt('totalTime', test.totalTime);
+
+                        try {
+                          await Provider.of<TestScreenProvider>(context, listen: false)
+                              .fetchTestData(test.id);
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TestScreen(
+                                topicId: widget.topicId,
+                                chapterId: widget.chapterId,
+                                lessonId: widget.lessonId,
+                                testId: test.id,
+                                totalTime: test.totalTime,
+                                subjectName: widget.subjectName,
+                                subjectId: widget.subjectId,
+                                selectedQuestionIndex: 0,
+                              ),
+                            ),
+                          );
+                        } catch (e) {
+                          print("Error: $e");
+                        } finally {
+                          _stopLoading(test.id); // Stop loading only for this test
+                        }
+                      },
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                    ],
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          const SizedBox(width: 80),
+                          const Text(
+                            'Begin Test',
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                          const SizedBox(width: 70),
+                          CircleAvatar(
+                            backgroundColor: Colors.blue[700],
+                            radius: 12,
+                            child: const Icon(Icons.arrow_right_alt_sharp, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            // Subtitle in the middle
-            Text(
-              subtitle,
-              style: const TextStyle(color: Colors.grey, fontSize: 18),
-              textAlign: TextAlign.start,
-            ),
-            const SizedBox(height: 20),
-            // Button at the bottom
-            SizedBox(
-              height: 60,
-              width: 320,
-              child: Material(
-                shadowColor: Colors.blue[300],
-                borderRadius: BorderRadius.circular(10),
-                child: OutlinedButton(
-                  onPressed: () async {
-
-                    if (isLoading) return;
-
-                    setState(() {
-                      isLoading = true; // Start loading
-                    });
-
-                    SharedPreferences prefs =
-                        await SharedPreferences.getInstance();
-                    await prefs.setInt('testId', test.id);
-                    await prefs.remove('remainingTime');
-                    await prefs.setInt('totalTime', test.totalTime);
-                    try {
-                      await Provider.of<TestScreenProvider>(context,
-                          listen: false)
-                          .fetchTestData(test.id);
-
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TestScreen(
-                            topicId: widget.topicId,
-                            chapterId: widget.chapterId,
-                            lessonId: widget.lessonId,
-                            testId: test.id,
-                            totalTime: test.totalTime,
-                            subjectName: widget.subjectName,
-                            subjectId: widget.subjectId,
-                          ),
-                        ),
-                      );
-                    } catch (e) {
-                      print("Error: $e");
-                    } finally {
-                      setState(() {
-                        isLoading = false; // Reset loading status
-                      });
-                    }
-                  },
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: isLoading
-                      ? const Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                      : Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      const SizedBox(width: 80),
-                      const Text(
-                        'Begin Test',
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                      const SizedBox(width: 70),
-                      CircleAvatar(
-                        backgroundColor: Colors.blue[700],
-                        radius: 12,
-                        child: const Icon(Icons.arrow_right_alt_sharp, color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            )
-          ],
+          ),
         ),
-      ),
+        // Show loading only for this test
+        if (loadingTests[test.id] == true)
+          const Center(
+            child: CircularProgressIndicator(
+              color: Colors.blue, // Blue loading spinner
+            ),
+          ),
+      ],
     );
   }
 }

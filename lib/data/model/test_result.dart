@@ -15,7 +15,7 @@ class TestResult {
 
   factory TestResult.fromJson(Map<String, dynamic> json) {
     return TestResult(
-      securedMarksInPercentage: json['securedMarksInPercentage'],
+      securedMarksInPercentage: json['securedMarksInPercentage']??'0%',
       totalNumberOfQuestionsAttempted: json['totalNumberOfQuestionsAttempted'],
       totalNumbersOfQuestions: json['totalNumbersOfQuestions'],
       remarksComment: json['remarksComment'],

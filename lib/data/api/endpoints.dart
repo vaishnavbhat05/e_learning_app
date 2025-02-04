@@ -19,9 +19,9 @@ class Endpoints {
     return '/questions/test/$testId';
   }
 
-  // static String submitTest(int testId) {
-  //   return '/tests/{testId}/submit';
-  // }
+  static String submitAnswer(int testId,int questionId) {
+    return '/questions/$questionId/test/$testId';
+  }
 
   static const String edit = '$baseUrl/profile-update';
 
@@ -51,19 +51,21 @@ class Endpoints {
     return '/content/topics/$topicId/lesson/$lessonId?pageNumber=$pageNumber';
   }
 
-  static String getFavourite(int topicId) {
-    return '/liked-topics/toggle/topic/$topicId';
+  static String getFavourite(int topicId,int pageNumber) {
+    return '/liked-topics/toggle/topic/$topicId?pageNumber=$pageNumber';
   }
 
   static String topicViewed(int topicId) {
     return '/user/study-progress/viewed/topic/$topicId';
   }
 
-  static String topicCompleted(int topicId) {
-    return '/user/study-progress/topic/$topicId/completed';
+  static String topicCompleted(int topicId,int pageNumber) {
+    return '/user/study-progress/topic/$topicId/completed?pageNumber=$pageNumber';
   }
 
 
   static const String logout = '/logout';
+
+
 
 }

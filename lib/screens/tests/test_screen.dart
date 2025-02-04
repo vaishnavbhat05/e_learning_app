@@ -15,6 +15,7 @@ class TestScreen extends StatefulWidget {
   final int testId;
   final int subjectId;
   final String subjectName;
+  final int selectedQuestionIndex;
   const TestScreen(
       {super.key,
       required this.topicId,
@@ -23,20 +24,22 @@ class TestScreen extends StatefulWidget {
       required this.testId,
       required this.totalTime,
       required this.subjectName,
-      required this.subjectId});
+      required this.subjectId,
+        required this.selectedQuestionIndex,
+      });
 
   @override
   State<TestScreen> createState() => _TestScreenState();
 }
 
 class _TestScreenState extends State<TestScreen> {
+  bool _testSubmitted = false;
   late Timer _timer;
   bool _isLoading = true;
   int _remainingTime = 0;
-  int _selectedOption = -1;
   int currentPage = 1;
-  int totalPages = 2;
-  final PageController _pageController = PageController();
+  int totalPages = 1;
+  late PageController _pageController;
   bool _modalShown = false;
 
   final ValueNotifier<double> _dividerProgress = ValueNotifier<double>(0.0);
@@ -46,10 +49,11 @@ class _TestScreenState extends State<TestScreen> {
   void initState() {
     super.initState();
     _loadRemainingTime();
+    currentPage = widget.selectedQuestionIndex+1;
+    _pageController = PageController(initialPage: widget.selectedQuestionIndex);
     _remainingTime = widget.totalTime * 60;
     _startTimer();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Your data fetching logic here
       _fetchTestData();
     });
   }
@@ -78,28 +82,27 @@ class _TestScreenState extends State<TestScreen> {
     if (_timer.isActive) {
       _timer.cancel();
     }
+    _dividerProgress.dispose();
     _saveRemainingTime();
     super.dispose();
   }
 
+
   void _startTimer() {
     int totalTimeInSeconds = widget.totalTime * 60;
 
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         _timer.cancel();
         return;
       }
 
       if (_remainingTime > 0) {
-        if (mounted) {
-          setState(() {
-            _remainingTime--;
-            _dividerProgress.value = _remainingTime / totalTimeInSeconds;
-            _dividerColor =
-                _getDividerColor(_remainingTime / totalTimeInSeconds);
-          });
-        }
+        setState(() {
+          _remainingTime--;
+          _dividerProgress.value = _remainingTime / totalTimeInSeconds;
+          _dividerColor = _getDividerColor(_remainingTime / totalTimeInSeconds);
+        });
       } else {
         _timer.cancel();
         _submitTest(true);
@@ -107,17 +110,20 @@ class _TestScreenState extends State<TestScreen> {
     });
   }
 
+
   Color _getDividerColor(double progress) {
     if (progress > 0.5) return Colors.green;
-    if (progress > 0.2) return Colors.yellow;
+    if (progress > 0.2) return Colors.orange;
     return Colors.red;
   }
 
   void _submitTest(bool isTimeout) async {
-    if (!mounted) return;
-    setState(() {
-      _isLoading = true; // Show the loading spinner
-    });
+    if (!mounted || _testSubmitted) return; // Prevent multiple calls
+    _testSubmitted = true; // Set flag to true
+
+    if (_timer.isActive) {
+      _timer.cancel();
+    }
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isTimeout', isTimeout);
@@ -126,9 +132,8 @@ class _TestScreenState extends State<TestScreen> {
         .submitTest(widget.testId, isTimeout);
 
     if (!mounted) return;
-    setState(() {
-      _isLoading = false;
-    });
+
+    // Navigate only once
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -141,6 +146,7 @@ class _TestScreenState extends State<TestScreen> {
           subjectId: widget.subjectId,
           subjectName: widget.subjectName,
           isTimeout: isTimeout,
+          selectedQuestionIndex: widget.selectedQuestionIndex,
         ),
       ),
     );
@@ -161,53 +167,17 @@ class _TestScreenState extends State<TestScreen> {
       setState(() {
         currentPage = page;
       });
-      _pageController.animateToPage(
-        page - 1, // Page index is 0-based
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          page - 1,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
     }
   }
 
-  Widget _buildOptionCard(String selectedOption, int index) {
-    bool isSelected = _selectedOption == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedOption = isSelected ? -1 : index;
-        });
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 8.0),
-          width: 360,
-          height: 70,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isSelected ? Colors.blue : Colors.white,
-              width: 2, // Border color
-            ),
-          ),
-          child: Row(
-            children: [
-              const SizedBox(width: 20),
-              Text(
-                selectedOption,
-                style: TextStyle(
-                  color: isSelected ? Colors.blue : Colors.black45,
-                  fontSize: 18,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -229,7 +199,13 @@ class _TestScreenState extends State<TestScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: IconButton(
                       onPressed: () {
-                        _timer.cancel(); // Ensure the timer stops immediately
+                        if (_timer.isActive) {
+                          _timer.cancel();
+                        }
+                        if (mounted) {
+                          _submitTest(false);
+                        }
+
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
@@ -242,8 +218,6 @@ class _TestScreenState extends State<TestScreen> {
                             ),
                           ),
                         );
-                        _submitTest(
-                            false); // Call submit AFTER navigation to avoid UI updates on disposed widget
                       },
                       icon: const Icon(
                         Icons.close,
@@ -258,16 +232,16 @@ class _TestScreenState extends State<TestScreen> {
                       children: [
                         const Icon(
                           Icons.alarm,
-                          color: Colors.blue,
-                          size: 20,
+                          color: Colors.grey,
+                          size: 22,
                         ),
                         const SizedBox(width: 5),
                         Consumer<TestScreenProvider>(
                           builder: (context, provider, child) {
                             return Text(
                               '${_formatTime(_remainingTime)} Remaining',
-                              style: const TextStyle(
-                                  fontSize: 16, color: Colors.blue),
+                              style: TextStyle(
+                                  fontSize: 18, color: _dividerColor),
                             );
                           },
                         ),
@@ -291,6 +265,7 @@ class _TestScreenState extends State<TestScreen> {
                                     remainingTime: _remainingTime,
                                     subjectName: widget.subjectName,
                                     subjectId: widget.subjectId,
+                                selectedQuestionIndex: widget.selectedQuestionIndex,
                                   )),
                         );
                       },
@@ -312,7 +287,7 @@ class _TestScreenState extends State<TestScreen> {
                       value: 1 - progress,
                       backgroundColor: Colors.grey.shade300,
                       valueColor:
-                          const AlwaysStoppedAnimation<Color>(Colors.blue),
+                          AlwaysStoppedAnimation<Color>(_dividerColor),
                       minHeight: 3,
                     ),
                   );
@@ -323,12 +298,11 @@ class _TestScreenState extends State<TestScreen> {
         ),
         body: Consumer<TestScreenProvider>(
           builder: (context, provider, child) {
-            if (provider.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
+            // if (provider.isLoading) {
+            //   return const Center(child: CircularProgressIndicator());
+            // }
 
-            totalPages = provider
-                .questionStatements.length; // Get total number of questions
+            totalPages = provider.questionStatements.length;
 
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -340,9 +314,11 @@ class _TestScreenState extends State<TestScreen> {
                       controller: _pageController,
                       itemCount: totalPages,
                       onPageChanged: (index) {
-                        setState(() {
-                          currentPage = index + 1;
-                        });
+                        if (mounted) {
+                          setState(() {
+                            currentPage = index + 1;
+                          });
+                        }
                       },
                       itemBuilder: (context, index) {
                         String questionStatement =
@@ -356,29 +332,37 @@ class _TestScreenState extends State<TestScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                questionStatement,
+                                'Q${index + 1} : $questionStatement',
                                 style: const TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               const SizedBox(height: 10),
-                              questionImage.isNotEmpty
+                              (questionImage != null && questionImage.isNotEmpty)
                                   ? Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: SizedBox(
-                                        width: 360,
-                                        height: 260,
-                                        child: ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          child: Image.network(questionImage),
-                                        ),
-                                      ),
-                                    )
+                                padding: const EdgeInsets.all(8.0),
+                                child: SizedBox(
+                                  width: 360,
+                                  height: 240, // Fixed height for image
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Image.network(
+                                      questionImage,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                              )
                                   : const SizedBox.shrink(),
                               const SizedBox(height: 10),
-                              ...List.generate(
-                                options.length,
-                                (i) => _buildOptionCard(options[i], i),
+                              Expanded(
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: options.length,
+                                  itemBuilder: (context, i) => _buildOptionCard(index, options[i], i),
+                                ),
                               ),
                             ],
                           ),
@@ -409,33 +393,32 @@ class _TestScreenState extends State<TestScreen> {
                                   Row(
                                     children: [
                                       Text(
-                                        'Ch${provider.testData?.chapterIndex ?? 'N/A'},', // Display chapterIndex
+                                        'Ch${provider.testData?.chapterIndex ?? 'N/A'},',
                                         style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                       Text(
-                                        'L${provider.testData?.lessonIndex ?? 'N/A'}', // Display lessonIndex
+                                        'L${provider.testData?.lessonIndex ?? 'N/A'}',
                                         style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                       Text(
-                                        ': ${provider.testData?.testName ?? 'N/A'}', // Display testName
+                                        ': ${provider.testData?.testName ?? 'N/A'}',
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
                                         ),
                                         maxLines: 1,
-                                        overflow: TextOverflow
-                                            .ellipsis, // Add ellipsis if text overflows
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ],
                                   ),
                                   Text(
-                                    '$currentPage of ${provider.testData?.totalQuestions ?? 'N/A'} question', // Display lessonIndex
+                                    '$currentPage of ${provider.testData?.totalQuestions ?? 'N/A'} question',
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -446,7 +429,6 @@ class _TestScreenState extends State<TestScreen> {
                             ),
                           ),
                         ),
-
                         // Navigation buttons
                         IconButton(
                           onPressed: currentPage > 1
@@ -459,21 +441,31 @@ class _TestScreenState extends State<TestScreen> {
                           ),
                         ),
                         IconButton(
-                          onPressed: () {
-                            int selectedOption = _selectedOption == -1 ? 0 : _selectedOption;
+                          onPressed: () async {
+                            int selectedOption = provider.questionAttempts[currentPage - 1] ?? 0;
+                            int questionId = provider.questionIds[currentPage - 1];
+                              await provider.submitAnswer(selectedOption, questionId, widget.testId);
 
-                            Provider.of<TestScreenProvider>(context, listen: false).submitAnswer(
-                              widget.testId,
-                              currentPage - 1,
-                              _selectedOption,
-                            );
-                            if (currentPage < totalPages) {
-                              goToPage(currentPage + 1);
-                            } else {
-                              _showSubmitModal();
-                            }
+                              setState(() {
+                                provider.setSelectedOption(currentPage - 1,selectedOption);
+                              });
+
+                              if (currentPage < totalPages) {
+                                goToPage(currentPage + 1);
+                              } else {
+                                _showSubmitModal();
+                              }
                           },
-                          icon: const Icon(
+                          icon: provider.isLoading
+                              ? const SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: CircularProgressIndicator(
+                              color: Colors.blue,
+                              strokeWidth: 2.5,
+                            ),
+                          )
+                              : const Icon(
                             Icons.arrow_forward,
                             color: Colors.blue,
                             size: 36,
@@ -491,6 +483,67 @@ class _TestScreenState extends State<TestScreen> {
     );
   }
 
+  Widget _buildOptionCard(int questionIndex, String option, int optionIndex) {
+    // We display option numbers starting at 1.
+    int displayedOptionIndex = optionIndex + 1;
+
+    return Consumer<TestScreenProvider>(
+      builder: (context, testProvider, child) {
+        // Retrieve the selected option for this question from the provider.
+        bool isSelected =
+            testProvider.questionAttempts[questionIndex] == displayedOptionIndex;
+
+        return GestureDetector(
+          onTap: () {
+            // Toggle the selection state.
+            if (isSelected) {
+              // If the option is already selected, deselect it.
+              testProvider.setSelectedOption(questionIndex, 0);  // Deselect
+            } else {
+              // If the option is not selected, select it.
+              testProvider.setSelectedOption(questionIndex, displayedOptionIndex);
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              width: 360,
+              height: 70,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected ? Colors.blue : Colors.white,
+                  width: 2,
+                ),
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 20),
+                  SizedBox(
+                    width: 320,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Text(
+                        option,
+                        style: TextStyle(
+                          color: isSelected ? Colors.blue : Colors.black45,
+                          fontSize: 18,
+                          fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
   void _showSubmitModal() {
     if (_modalShown) return;
     _modalShown = true;
@@ -525,7 +578,7 @@ class _TestScreenState extends State<TestScreen> {
                       Padding(
                         padding: EdgeInsets.only(left: 50, right: 50),
                         child: Text(
-                          'You have unattempted questions, would you like to submit the test?',
+                          'Would you like to submit the test?',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 21,
@@ -569,7 +622,13 @@ class _TestScreenState extends State<TestScreen> {
                         shadowColor: Colors.blue[400],
                         borderRadius: BorderRadius.circular(15),
                         child: OutlinedButton(
-                          onPressed: () => _submitTest(false),
+                          onPressed: () async {
+                            _timer.cancel();
+                            _submitTest(false);
+                            SharedPreferences prefs = await SharedPreferences.getInstance();
+                            await prefs.remove('remainingTime');
+                            await prefs.remove('isTimeout');
+                          },
                           style: OutlinedButton.styleFrom(
                             backgroundColor: Colors.blue,
                             shape: RoundedRectangleBorder(

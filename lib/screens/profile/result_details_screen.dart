@@ -11,6 +11,13 @@ class ResultDetailsScreen extends StatefulWidget {
 
 class _ResultDetailsScreenState extends State<ResultDetailsScreen> {
   String selectedSubject = "All"; // Default to show all subjects
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,21 +125,26 @@ class _ResultDetailsScreenState extends State<ResultDetailsScreen> {
                   ),
                   const SizedBox(height: 20),
                   Expanded(
-                    child: filteredResults.isEmpty
-                        ? const Center(child: Text("No results for this subject."))
-                        : ListView.builder(
-                      itemCount: filteredResults.length,
-                      itemBuilder: (context, index) {
-                        final result = filteredResults[index];
-                        return buildResultCard(
-                          subject: result.subjectName,
-                          lesson: result.lessonIndex,
-                          title: result.lessonName,
-                          rightAnswers: result.correctAnsweredQuestion,
-                          totalQuestions: result.totalQuestion,
-                          score: result.securedMarks,
-                        );
-                      },
+                    child: Scrollbar(
+                      controller: _scrollController,
+                      thickness: 8, // Adjust scrollbar thickness
+                      radius: const Radius.circular(10), // Make it rounded
+                      thumbVisibility: true, // Always visible scrollbar
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        itemCount: filteredResults.length,
+                        itemBuilder: (context, index) {
+                          final result = filteredResults[index];
+                          return buildResultCard(
+                            subject: result.subjectName,
+                            lesson: result.lessonIndex,
+                            title: result.lessonName,
+                            rightAnswers: result.correctAnsweredQuestion,
+                            totalQuestions: result.totalQuestion,
+                            score: result.securedMarks,
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ],

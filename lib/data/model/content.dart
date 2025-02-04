@@ -1,40 +1,63 @@
+enum ContentType {
+  IMAGE,
+  VIDEO,
+  AUDIO,
+  IMAGEWITHVIDEO,
+  IMAGEWITHAUDIO,
+  IMAGEWITHINFO,
+  VIDEOWITHAUDIO,
+  VIDEOWITHINFO,
+  AUDIOWITHINFO,
+  AUDIOWITHIMAGE,
+  IMAGEWITHVIDEOAUDIO,
+  IMAGEWITHVIDEOINFO,
+  IMAGEWITHAUDIOINFO,
+  VIDEOWITHAUDIOINFO,
+  IMAGEVIDEOAUDIOINFO,
+  INFO,
+}
+
 class Content {
   final int id;
   final String heading;
-  final String contentType;
-  final String contentImg;
+  final ContentType contentType;
+  final String? contentImg;  // if available
+  final String? videoUrl;    // if available
+  final String? audioUrl;    // note: mapped from API
   final String info;
   final bool userLiked;
-  final int totalPages;
-  final int currentPage;
-  final int lessonId;
-  final int topicId;
 
   Content({
     required this.id,
     required this.heading,
     required this.contentType,
-    required this.contentImg,
+    this.contentImg,
+    this.videoUrl,
+    this.audioUrl,
     required this.info,
     required this.userLiked,
-    required this.totalPages,
-    required this.currentPage,
-    required this.lessonId,
-    required this.topicId,
   });
 
   factory Content.fromJson(Map<String, dynamic> json) {
+    // Convert string from JSON to enum. Adjust if your JSON value doesn't match exactly.
+    ContentType type = ContentType.INFO;
+    try {
+      type = ContentType.values.firstWhere((e) =>
+      e.toString().split('.').last.toUpperCase() ==
+          json['contentType'].toString().toUpperCase());
+    } catch (e) {
+      // fallback if not found
+    }
+
     return Content(
       id: json['id'],
       heading: json['heading'],
-      contentType: json['contentType']??"",
-      contentImg: json['contentImg']??"",
-      info: json['info']??'',
-      userLiked: json['userLiked'],
-      totalPages: json['totalPages'] ?? 0,
-      currentPage: json['currentPage'] ?? 0,
-      lessonId: json['lessonId'] ?? 0,
-      topicId: json['topicId'] ?? 0,
+      contentType: type,
+      contentImg: json['contentImg'] ?? '',
+      videoUrl: json['videoUrl'] ?? '', // if provided by your API
+      audioUrl: json['audioUrl'] ?? '', // note: this is where your URL comes from
+      info: json['info'] ?? '',
+      userLiked: json['userLiked'] ?? false,
     );
   }
 }

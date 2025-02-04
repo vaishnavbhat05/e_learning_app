@@ -84,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         backgroundColor: Colors.grey[100],
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           backgroundColor: Colors.transparent,
           elevation: 0,
           title: Row(
@@ -265,8 +266,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                   return ListTile(
                                     title: Text(_suggestions[index]),
                                     onTap: () {
+                                      final subject = homeProvider.searchResults.first;
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ChapterScreen(
+                                            subjectId: subject.id,
+                                            subjectName: subject.subjectName,
+                                          ),
+                                        ),
+                                      );
                                       setState(() {
-                                        _searchController.text = _suggestions[index];
                                         _suggestions.clear(); // Clear suggestions after selection
                                       });
                                     },
@@ -304,7 +314,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       subjectId: chapter['subjectId'],
                                       subjectName: chapter['subjectName'],
                                     ),
+                                    settings: RouteSettings(
+                                      arguments: chapter['chapterId'],
+                                    ),
                                   ),
+
                                 );
                               },
                               child: StudyCard(
@@ -314,6 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: getFixedColorForCard(index),
                                 imageUrl: chapter['chapterImage']??"",
                               ),
+
                             );
                           },
                         ),

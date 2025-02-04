@@ -12,6 +12,7 @@ class TestQuestionsScreen extends StatefulWidget {
   final int subjectId;
   final String subjectName;
   final int topicId;
+  final int selectedQuestionIndex;
   const TestQuestionsScreen(
       {super.key,
         required this.chapterId,
@@ -21,7 +22,8 @@ class TestQuestionsScreen extends StatefulWidget {
       required this.remainingTime,
       required this.subjectId,
       required this.subjectName,
-      required this.topicId});
+      required this.topicId,
+      required this.selectedQuestionIndex,});
 
   @override
   _TestQuestionsScreenState createState() => _TestQuestionsScreenState();
@@ -61,6 +63,7 @@ class _TestQuestionsScreenState extends State<TestQuestionsScreen> {
                       testId: widget.testId,
                       totalTime: widget.totalTime,
                       topicId: widget.topicId,
+                      selectedQuestionIndex: widget.selectedQuestionIndex,
                     ),
                   ),
                 );
@@ -110,8 +113,7 @@ class _TestQuestionsScreenState extends State<TestQuestionsScreen> {
                     itemCount: provider.questionStatements.length,
                     itemBuilder: (context, index) {
                       final questionText = provider.questionStatements[index];
-                      // final isAttempted = provider.isAttempted(index);
-                      const isAttempted = false;
+                      bool isAttempted = provider.isAttempted(index);
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 30.0),
                         child: GestureDetector(
@@ -127,6 +129,7 @@ class _TestQuestionsScreenState extends State<TestQuestionsScreen> {
                                   totalTime: widget.totalTime,
                                   subjectName: widget.subjectName,
                                   subjectId: widget.subjectId,
+                                  selectedQuestionIndex: index,
                                 ),
                               ),
                             );
@@ -136,7 +139,7 @@ class _TestQuestionsScreenState extends State<TestQuestionsScreen> {
                             children: [
                               Text(
                                 '${index + 1}.',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 20,
                                   color:
                                       isAttempted ? Colors.blue : Colors.black,
@@ -150,7 +153,7 @@ class _TestQuestionsScreenState extends State<TestQuestionsScreen> {
                                 child: Text(
                                   questionText,
                                   textAlign: TextAlign.start,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 21,
                                     color: isAttempted
                                         ? Colors.blue

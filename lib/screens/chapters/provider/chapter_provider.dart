@@ -52,6 +52,12 @@ class ChapterProvider with ChangeNotifier {
 
   final ApiHandler apiHandler = ApiHandler();
 
+  void clearData() {
+    chapters.clear();
+    lessons.clear();
+    likedTopics.clear();
+    notifyListeners();
+  }
   //CHAPTER API CALL//
 
   Future<void> fetchChapters(int subjectId) async {
@@ -72,7 +78,7 @@ class ChapterProvider with ChangeNotifier {
 
       final responseBody = await apiHandler.getRequest(
         Endpoints.getChapters(
-            subjectId), // Fetch chapters using the passed subjectId
+            subjectId),
         headers: {'Authorization': 'Bearer $accessToken'},
       );
       print(accessToken);
@@ -142,12 +148,18 @@ class ChapterProvider with ChangeNotifier {
 
   //LESSON DETAILS API//
 
+  void clearLessons() {
+    _lessons.clear();
+    notifyListeners();
+  }
+
+
   Future<void> fetchLessonDetails(int chapterId, int lessonId) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
-    // try {
+    try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? accessToken = prefs.getString('accessToken');
 
@@ -201,10 +213,10 @@ class ChapterProvider with ChangeNotifier {
         _errorMessage =
             response?['message'] ?? 'Failed to load lesson details.';
       }
-    // } catch (error) {
-    //   _errorMessage = 'Error: $error';
-    //   print(_errorMessage);
-    // }
+    } catch (error) {
+      _errorMessage = 'Error: $error';
+      print(_errorMessage);
+    }
 
     _isLoading = false;
     notifyListeners();
@@ -251,6 +263,10 @@ class ChapterProvider with ChangeNotifier {
 
   //CONTENT API//
 
+  void clearContent() {
+    _content.clear();
+  }
+
   Future<void> fetchLessonTopics(
       int topicId, int lessonId, int pageNumber) async {
     _isLoading = true;
@@ -273,6 +289,7 @@ class ChapterProvider with ChangeNotifier {
         headers: {'Authorization': 'Bearer $accessToken'},
       );
 
+      print(response);
       if (response != null && response['status'] == 0) {
         var data = response['data'];
 
@@ -282,7 +299,6 @@ class ChapterProvider with ChangeNotifier {
             return Content.fromJson(contentJson as Map<String, dynamic>);
           }).toList();
 
-          // Update the currentPage and totalPages
           _currentPage = data['currentPage'] ?? 1;
           _totalPages = data['totalPages'] ?? 1;
           _lessonIndex = data['lessonIndex'] ?? 1;
@@ -418,9 +434,29 @@ class ChapterProvider with ChangeNotifier {
     }
   }
 
+
   //TOPIC COMPLETED API//
 
-  Future<void> markTopicAsCompleted(int topicId) async {
+  // List<int> visitedPages = []; // To track visited pages
+  //
+  // void markPageAsVisited(int pageNumber) {
+  //   if (!visitedPages.contains(pageNumber)) {
+  //     visitedPages.add(pageNumber);
+  //   }
+  //   notifyListeners();
+  // }
+  //
+  // bool isTopicCompleted() {
+  //   // Check if all pages from 1 to totalPages have been visited
+  //   for (int i = 1; i <= totalPages; i++) {
+  //     if (!visitedPages.contains(i)) {
+  //       return false; // Not all pages have been visited
+  //     }
+  //   }
+  //   return true; // All pages visited
+  // }
+
+  Future<void> markTopicAsCompleted(int topicId,int pageNumber) async {
     _isLoading = true;
     notifyListeners();
 
@@ -436,8 +472,10 @@ class ChapterProvider with ChangeNotifier {
       }
 
       final response = await apiHandler.postRequest(
-        Endpoints.topicCompleted(topicId),
-        {},
+        Endpoints.topicCompleted(topicId,pageNumber),
+        {
+          'pageNumber':pageNumber
+        },
         headers: {
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',
@@ -457,3 +495,4 @@ class ChapterProvider with ChangeNotifier {
     }
   }
 }
+

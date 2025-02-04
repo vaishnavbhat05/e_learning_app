@@ -16,31 +16,64 @@ class TestScreenProvider extends ChangeNotifier {
   List<String> questionStatements = [];
   List<List<String>> optionsList = [];
   List<String> questionImages = [];
+  List<int> questionIds = [];
 
   final ApiHandler apiHandler = ApiHandler();
 
+  final Map<int, int> _questionAttempts = {};
+
+  Map<int, int> get questionAttempts => _questionAttempts;
+
+  void setSelectedOption(int questionIndex, int option) {
+    // Set the option to 0 if it is deselected.
+    if (option == 0) {
+      _questionAttempts.remove(questionIndex);  // Deselect the option
+    } else {
+      _questionAttempts[questionIndex] = option;  // Select the new option
+    }
+    notifyListeners();
+  }
+
+
+  bool isAttempted(int questionIndex) {
+    return _questionAttempts.containsKey(questionIndex);
+  }
+
+  void clearSelections() {
+    _questionAttempts.clear();
+  }
+
+
+  void resetTestData() {
+    questionStatements.clear();
+    optionsList.clear();
+    questionImages.clear();
+    questionIds.clear();
+    clearSelections();
+    isLoading = true;
+    errorMessage = '';
+    notifyListeners();
+  }
 
   //SUBMIT ANSWER API//
 
-  Future<void> submitAnswer(int selectedOption, int questionId, int testId) async {
-    isLoading = true;
-    notifyListeners();
+  Future<bool> submitAnswer(int selectedOption, int questionId, int testId) async {
+    // isLoading = true;
+    // notifyListeners();
 
-    // Get the access token from SharedPreferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? accessToken = prefs.getString('accessToken');
 
     if (accessToken == null) {
       print('Access token is null, cannot submit test');
-      isLoading = false;
-      notifyListeners();
-      return;
+      // isLoading = false;
+      // notifyListeners();
+      return false;
     }
-
 
     print('Request payload: {"selectedOption": $selectedOption}');
 
-    final url = Uri.parse('http://16.170.246.37:8080/api/v1/questions/$questionId/test/$testId');
+    final url = Uri.parse('http://16.170.246.37:8080/api/v1/questions/$questionId/test/$testId?selectedOption=$selectedOption');
 
     try {
       final response = await http.post(
@@ -49,31 +82,84 @@ class TestScreenProvider extends ChangeNotifier {
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',
         },
-        body: json.encode({
+        body: jsonEncode({
           'selectedOption': selectedOption,
+          'questionId': questionId,
+          'testId': testId,
         }),
       );
 
-      // Check if the response is successful
       if (response.statusCode == 200) {
-        print('Test submitted successfully');
-        // Handle success response here, for example, parse the response body
         var responseData = json.decode(response.body);
-        print('Response: $responseData');
-      } else {
-        print('Failed to submit answer. Status code: ${response.statusCode}');
-        // Handle error response here
-        var errorResponse = json.decode(response.body);
-        print('Error response: $errorResponse');
+        print('Response Data: $responseData');
+        // isLoading = false;
+        // notifyListeners();
+        return true;
       }
-    } catch (e) {
+      else if (response.statusCode == 401) {
+        print('Access token expired. Attempting to refresh token...');
+        bool refreshed = await refreshAccessToken();
+
+        if (refreshed) {
+          return submitAnswer(selectedOption, questionId, testId); // Retry request
+        } else {
+          print('Token refresh failed. Logging out user.');
+          // isLoading = false;
+          // notifyListeners();
+          return false;
+        }
+      }
+      else {
+        print('Failed to submit answer. Status code: ${response.statusCode}');
+        var errorResponse = json.decode(response.body);
+        print('Error Response: $errorResponse');
+        // isLoading = false;
+        // notifyListeners();
+        return false;
+      }
+    } catch (e, stackTrace) {
       print('Error during POST request: $e');
-      // Handle any errors that might occur during the request
+      print('Stack Trace: $stackTrace');
+      // isLoading = false;
+      // notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> refreshAccessToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? refreshToken = prefs.getString('refreshToken');
+
+    if (refreshToken == null) {
+      print('Refresh token not found. User must log in again.');
+      return false;
     }
 
-    isLoading = false;
-    notifyListeners();
+    try {
+      final response = await http.post(
+        Uri.parse('http://16.170.246.37:8080/api/v1/refresh-Token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refreshToken': refreshToken}),
+      );
+
+      if (response.statusCode == 200) {
+        var data = json.decode(response.body);
+        String newAccessToken = data['accessToken'];
+
+        // Save new token
+        await prefs.setString('accessToken', newAccessToken);
+        print('Access token refreshed successfully.');
+        return true;
+      } else {
+        print('Failed to refresh token. Status code: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('Error refreshing token: $e');
+      return false;
+    }
   }
+
 
 
 
@@ -120,7 +206,6 @@ class TestScreenProvider extends ChangeNotifier {
 
   Future<void> fetchTestData(int testId) async {
     _setLoading(true);
-    notifyListeners();
 
     final accessToken = await _getAccessToken();
     if (accessToken == null) {
@@ -136,6 +221,7 @@ class TestScreenProvider extends ChangeNotifier {
       );
       print('AccessToken:$accessToken');
 
+      print(response);
 
       if (response['status'] == 0) {
         final data = response['data']; // The entire data object
@@ -150,22 +236,23 @@ class TestScreenProvider extends ChangeNotifier {
       }
 
       if (response['status'] == 0) {
-        final data = response['data']['questions'];  // Directly access 'questions' field
-        if (data != null) {
-          _extractTestData(data);  // Extract data into separate variables
+        final questionsData = response['data']['questions'];  // Get the list of questions
+        if (questionsData != null) {
+          _extractTestData(questionsData);  // Pass the list to extract function
         } else {
           errorMessage = 'No test data available.';
         }
-      } else {
+      }
+      else {
         errorMessage = 'Failed to fetch data. Status code: ${response['statusCode']}';
       }
     } catch (e) {
       errorMessage = 'An error occurred: $e';
     } finally {
       _setLoading(false);
+      notifyListeners();
     }
   }
-
 
 
   Future<String?> _getAccessToken() async {
@@ -179,18 +266,19 @@ class TestScreenProvider extends ChangeNotifier {
   }
 
 
-  void _extractTestData(List<dynamic> data) {
-    questionStatements.clear();
-    optionsList.clear();
-    questionImages.clear();
+  void _extractTestData(List<dynamic> questions) {
+    questionIds = [];
+    questionStatements = [];
+    optionsList = [];
+    questionImages = [];
 
-    for (var question in data) {
+    for (var question in questions) {
+      questionIds.add(question['id']);
       questionStatements.add(question['questionStatement']);
-      optionsList.add(List<String>.from(question['options']));  // Create a new list for options
-      questionImages.add(question['questionImageUrl']);
+      optionsList.add(List<String>.from(question['options']));
+      questionImages.add(question['questionImageUrl'] ?? '');
     }
 
     notifyListeners();
   }
-
 }

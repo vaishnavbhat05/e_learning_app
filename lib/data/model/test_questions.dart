@@ -50,7 +50,7 @@ class QuestionModel {
       id: json['id'],
       questionStatement: json['questionStatement'],
       options: List<String>.from(json['options']),
-      questionImageUrl: json['questionImageUrl'],
+      questionImageUrl: json['questionImageUrl']??'',
     );
   }
 }
