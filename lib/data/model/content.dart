@@ -21,9 +21,9 @@ class Content {
   final int id;
   final String heading;
   final ContentType contentType;
-  final String? contentImg;  // if available
-  final String? videoUrl;    // if available
-  final String? audioUrl;    // note: mapped from API
+  final String? contentImg;
+  final String? videoUrl;
+  final String? audioUrl;
   final String info;
   final bool userLiked;
 

@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../chapters/chapter_screen.dart';
 import '../home/notifications_screen.dart';
 import '../home/search_not_found_screen.dart';
@@ -39,7 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final homeProvider = Provider.of<HomeProvider>(context, listen: false);
       await homeProvider.searchSubjects(query); // Search for the subjects
       setState(() {
-        _suggestions = homeProvider.searchResults.map((subject) => subject.subjectName).toList();
+        _suggestions = homeProvider.searchResults
+            .map((subject) => subject.subjectName)
+            .toList();
       });
     } else {
       setState(() {
@@ -57,26 +58,6 @@ class _HomeScreenState extends State<HomeScreen> {
       0.5,
     );
   }
-  // List<Map<String, String>> staticChapters = [
-  //   {
-  //     'subjectName': 'Mathematics',
-  //     'chapterName': 'Algebra Basics',
-  //     'completedChapterInPercentage': '25%',
-  //     'chapterImage': 'assets/images/math_chapter.jpg', // Replace with your image assets
-  //   },
-  //   {
-  //     'subjectName': 'Physics',
-  //     'chapterName': 'Mechanics',
-  //     'completedChapterInPercentage': '15%',
-  //     'chapterImage': 'assets/images/physics_chapter.jpg',
-  //   },
-  //   {
-  //     'subjectName': 'Chemistry',
-  //     'chapterName': 'Organic Chemistry',
-  //     'completedChapterInPercentage': '10%',
-  //     'chapterImage': 'assets/images/chemistry_chapter.jpg',
-  //   },
-  // ];
 
   @override
   Widget build(BuildContext context) {
@@ -126,11 +107,11 @@ class _HomeScreenState extends State<HomeScreen> {
         body: Consumer2<ProfileProvider, HomeProvider>(
           builder: (context, profileProvider, homeProvider, child) {
             final profile = profileProvider.profile;
-            final isCurrentlyStudyingAvailable = homeProvider.currentlyStudyingChapters.isNotEmpty;
+            final isCurrentlyStudyingAvailable =
+                homeProvider.currentlyStudyingChapters.isNotEmpty;
             final chapterList = isCurrentlyStudyingAvailable
                 ? homeProvider.currentlyStudyingChapters
                 : homeProvider.recommendedChapters;
-
 
             return SingleChildScrollView(
               child: Padding(
@@ -141,7 +122,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Center(
                       child: Text(
                         'Hi, ${profile?.userName ?? "Guest"}',
-                        style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontSize: 32, fontWeight: FontWeight.bold),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -151,13 +133,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: TextStyle(fontSize: 22, color: Colors.black54),
                       ),
                     ),
+                    const Center(
+                      child: Text(
+                        'You can search below.',
+                        style: TextStyle(fontSize: 22, color: Colors.black54),
+                      ),
+                    ),
                     const SizedBox(height: 40),
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(18),
@@ -183,10 +172,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 GestureDetector(
                                   onTap: () async {
-                                    final keyword = _searchController.text.trim();
+                                    final keyword =
+                                        _searchController.text.trim();
                                     if (keyword.isEmpty) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text("Please enter a search keyword")),
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                "Please enter a search keyword")),
                                       );
                                       return;
                                     }
@@ -196,14 +189,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                       _suggestions.clear();
                                     });
 
-                                    final homeProvider = Provider.of<HomeProvider>(context, listen: false);
+                                    final homeProvider =
+                                        Provider.of<HomeProvider>(context,
+                                            listen: false);
                                     try {
-                                      // Clear existing results and perform new search
                                       homeProvider.searchResults.clear();
-                                      await homeProvider.searchSubjects(keyword);
+                                      await homeProvider
+                                          .searchSubjects(keyword);
 
-                                      if (homeProvider.searchResults.isNotEmpty) {
-                                        final subject = homeProvider.searchResults.first;
+                                      if (homeProvider
+                                          .searchResults.isNotEmpty) {
+                                        final subject =
+                                            homeProvider.searchResults.first;
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
@@ -216,12 +213,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                       } else {
                                         Navigator.push(
                                           context,
-                                          MaterialPageRoute(builder: (context) => const SearchNotFoundScreen()),
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const SearchNotFoundScreen()),
                                         );
                                       }
                                     } catch (error) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text("An error occurred, please try again")),
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                "An error occurred, please try again")),
                                       );
                                     } finally {
                                       setState(() => isLoading = false);
@@ -235,8 +237,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       borderRadius: BorderRadius.circular(13),
                                     ),
                                     child: isLoading
-                                        ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                                        : const Icon(Icons.search, color: Colors.white, size: 30),
+                                        ? const Center(
+                                            child: CircularProgressIndicator(
+                                                color: Colors.white))
+                                        : const Icon(Icons.search,
+                                            color: Colors.white, size: 30),
                                   ),
                                 ),
                               ],
@@ -259,14 +264,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                               child: ListView.builder(
-                                shrinkWrap: true, // Prevent overflow
+                                shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
                                 itemCount: _suggestions.length,
                                 itemBuilder: (context, index) {
                                   return ListTile(
                                     title: Text(_suggestions[index]),
                                     onTap: () {
-                                      final subject = homeProvider.searchResults.first;
+                                      final subject =
+                                          homeProvider.searchResults.first;
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -277,14 +283,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       );
                                       setState(() {
-                                        _suggestions.clear(); // Clear suggestions after selection
+                                        _suggestions.clear();
                                       });
                                     },
                                   );
                                 },
                               ),
                             ),
-                          const SizedBox(height: 20), // Extra space for better UX when keyboard appears
+                          const SizedBox(height: 20),
                         ],
                       ),
                     ),
@@ -292,8 +298,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     Padding(
                       padding: const EdgeInsets.only(left: 16.0),
                       child: Text(
-                        isCurrentlyStudyingAvailable ? 'CURRENTLY STUDYING' : 'RECOMMENDED',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54),
+                        isCurrentlyStudyingAvailable
+                            ? 'CURRENTLY STUDYING'
+                            : 'RECOMMENDED',
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black54),
                       ),
                     ),
                     Padding(
@@ -318,17 +329,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                       arguments: chapter['chapterId'],
                                     ),
                                   ),
-
                                 );
                               },
                               child: StudyCard(
                                 subject: chapter['subjectName'],
-                                title: chapter['chapterName']??"",
-                                progress: chapter['completedChapterInPercentage']??0.0,
+                                title: chapter['chapterName'] ?? "",
+                                progress:
+                                    chapter['completedChapterInPercentage'] ??
+                                        0.0,
                                 color: getFixedColorForCard(index),
-                                imageUrl: chapter['chapterImage']??"",
+                                imageUrl: chapter['chapterImage'] ?? "",
                               ),
-
                             );
                           },
                         ),

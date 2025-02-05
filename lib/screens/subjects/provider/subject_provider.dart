@@ -1,8 +1,8 @@
 import 'package:e_learning_app/data/api/endpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../data/model/subject.dart'; // Import the SubjectModel
-import '../../../data/api/api_handler.dart'; // Import ApiHandler
+import '../../../data/model/subject.dart';
+import '../../../data/api/api_handler.dart';
 
 class SubjectProvider extends ChangeNotifier {
   List<SubjectModel> _subjects = [];
@@ -12,8 +12,6 @@ class SubjectProvider extends ChangeNotifier {
   List<SubjectModel> get subjects => _subjects;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-
-  // Function to fetch subjects and save first subject ID by default
   Future<void> fetchSubjects() async {
     _isLoading = true;
     _errorMessage = null;
@@ -38,13 +36,10 @@ class SubjectProvider extends ChangeNotifier {
         headers: {'Authorization': 'Bearer $accessToken'},
       );
 
-
-      // Check response and update subjects
       if (responseBody != null && responseBody['status'] == 0) {
         List<dynamic> subjectsList = responseBody['data']['subjects'];
         _subjects = subjectsList.map((subject) => SubjectModel.fromJson(subject)).toList();
 
-        // Save the first subject ID to SharedPreferences if available
         if (_subjects.isNotEmpty) {
         }
       } else {

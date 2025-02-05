@@ -4,7 +4,6 @@ import 'package:e_learning_app/screens/tests/provider/test_screen_provider.dart'
 import 'package:e_learning_app/screens/tests/test_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 Alignment calculateCheckMarkPosition(double progress) {
   double angle = pi * 2 * progress + (pi / 2);
@@ -13,6 +12,7 @@ Alignment calculateCheckMarkPosition(double progress) {
   double y = radius * sin(angle);
   return Alignment(x, y);
 }
+
 class ResultScreen extends StatefulWidget {
   final int lessonId;
   final int chapterId;
@@ -42,7 +42,6 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -64,7 +63,13 @@ class _ResultScreenState extends State<ResultScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => ChapterDetailsScreen(topicId: widget.topicId,chapterId:widget.chapterId,lessonId:widget.lessonId,subjectId: widget.subjectId,subjectName: widget.subjectName,)),
+                        builder: (context) => ChapterDetailsScreen(
+                              topicId: widget.topicId,
+                              chapterId: widget.chapterId,
+                              lessonId: widget.lessonId,
+                              subjectId: widget.subjectId,
+                              subjectName: widget.subjectName,
+                            )),
                   );
                 },
                 icon: const Icon(
@@ -83,10 +88,13 @@ class _ResultScreenState extends State<ResultScreen> {
               return const Center(child: CircularProgressIndicator());
             }
 
-            Object securedPercentage = provider.testResult?.securedMarksInPercentage ?? '0%';
+            Object securedPercentage =
+                provider.testResult?.securedMarksInPercentage ?? '0%';
 
-            String securedPercentageStr = securedPercentage.toString().replaceAll('%', '').trim();
-            double normalizedProgress = (double.tryParse(securedPercentageStr) ?? 0.0) / 100.0;
+            String securedPercentageStr =
+                securedPercentage.toString().replaceAll('%', '').trim();
+            double normalizedProgress =
+                (double.tryParse(securedPercentageStr) ?? 0.0) / 100.0;
 
             normalizedProgress = normalizedProgress.clamp(0.0, 1.0);
 
@@ -118,37 +126,18 @@ class _ResultScreenState extends State<ResultScreen> {
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // RichText(
-                              //   text: TextSpan(
-                              //     children: [
-                              //       TextSpan(
-                              //         text: '${provider.testResult?.securedMarksInPercentage}',
-                              //         style: const TextStyle(
-                              //           fontSize: 32,
-                              //           fontWeight: FontWeight.bold,
-                              //           color: Colors.black,
-                              //         ),
-                              //       ),
-                              //       const TextSpan(
-                              //         text: '%',
-                              //         style: TextStyle(
-                              //           fontSize: 24,
-                              //           fontWeight: FontWeight.bold,
-                              //           color: Colors.black,
-                              //         ),
-                              //       ),
-                              //     ],
-                              //   ),
-                              // ),
                               Text(
-                                provider.testResult?.securedMarksInPercentage?? '0%',
+                                provider.testResult?.securedMarksInPercentage ??
+                                    '0%',
                                 style: const TextStyle(
                                   fontSize: 32,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black,
                                 ),
                               ),
-                              const SizedBox(height: 10), // Space between percentage and X of Y text
+                              const SizedBox(
+                                  height:
+                                      10),
                               Text(
                                 '${provider.testResult?.totalNumberOfQuestionsAttempted ?? 0} of ${provider.testResult?.totalNumbersOfQuestions ?? 5}',
                                 style: const TextStyle(
@@ -162,9 +151,11 @@ class _ResultScreenState extends State<ResultScreen> {
                             alignment: const Alignment(0, 1.3),
                             child: _buildScoreContainer(),
                           ),
-                          if (normalizedProgress >= 0.1 && normalizedProgress <= 0.9)
+                          if (normalizedProgress >= 0.1 &&
+                              normalizedProgress <= 0.9)
                             Align(
-                              alignment: calculateCheckMarkPosition(normalizedProgress),
+                              alignment: calculateCheckMarkPosition(
+                                  normalizedProgress),
                               child: Container(
                                 width: 50,
                                 height: 50,
@@ -184,8 +175,7 @@ class _ResultScreenState extends State<ResultScreen> {
                     ),
                     const SizedBox(height: 140),
                     Text(
-                      provider.testResult?.remarksComment ??
-                          '',
+                      provider.testResult?.remarksComment ?? '',
                       style: const TextStyle(
                           fontSize: 28, fontWeight: FontWeight.bold),
                     ),
@@ -196,8 +186,8 @@ class _ResultScreenState extends State<ResultScreen> {
                         provider.testResult?.remarkSubComment ??
                             'You are 5 correct questions away from 100%',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 22, color: Colors
-                            .grey),
+                        style:
+                            const TextStyle(fontSize: 22, color: Colors.grey),
                       ),
                     ),
                     const SizedBox(height: 120),
@@ -205,22 +195,32 @@ class _ResultScreenState extends State<ResultScreen> {
                       width: 350,
                       height: 60,
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
+                          Provider.of<TestScreenProvider>(context,
+                                  listen: false)
+                              .clearSelections();
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                              widget.isTimeout
-                                  ? ChapterDetailsScreen(chapterId: widget.chapterId,lessonId:widget.lessonId,subjectId: widget.subjectId,subjectName: widget.subjectName, topicId: widget.topicId,)
+                              builder: (context) => widget.isTimeout
+                                  ? ChapterDetailsScreen(
+                                      chapterId: widget.chapterId,
+                                      lessonId: widget.lessonId,
+                                      subjectId: widget.subjectId,
+                                      subjectName: widget.subjectName,
+                                      topicId: widget.topicId,
+                                    )
                                   : TestScreen(
-                                topicId: widget.topicId,
-                                chapterId: widget.chapterId,
-                                lessonId: widget.lessonId,
-                                  testId: widget.testId,
-                                  totalTime: widget.totalTime,subjectName: widget.subjectName,
-                                subjectId: widget.subjectId,
-                                selectedQuestionIndex: widget.selectedQuestionIndex,
-                              ),
+                                      topicId: widget.topicId,
+                                      chapterId: widget.chapterId,
+                                      lessonId: widget.lessonId,
+                                      testId: widget.testId,
+                                      totalTime: widget.totalTime,
+                                      subjectName: widget.subjectName,
+                                      subjectId: widget.subjectId,
+                                      selectedQuestionIndex:
+                                          widget.selectedQuestionIndex,
+                                    ),
                             ),
                           );
                         },
@@ -237,7 +237,9 @@ class _ResultScreenState extends State<ResultScreen> {
                                 ? const SizedBox(width: 80)
                                 : const SizedBox(width: 110),
                             Text(
-                              widget.isTimeout ? 'Take a New Test' : 'Try Again',
+                              widget.isTimeout
+                                  ? 'Take a New Test'
+                                  : 'Try Again',
                               style: const TextStyle(
                                   fontSize: 18, color: Colors.white),
                             ),
@@ -263,6 +265,7 @@ class _ResultScreenState extends State<ResultScreen> {
       ),
     );
   }
+
   Widget _buildScoreContainer() {
     return Container(
       width: 80,
@@ -274,7 +277,6 @@ class _ResultScreenState extends State<ResultScreen> {
       child: const Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Text('+20', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green)),
           SizedBox(width: 5),
           Icon(Icons.star, color: Colors.green, size: 25),
         ],

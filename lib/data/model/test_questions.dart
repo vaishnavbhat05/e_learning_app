@@ -15,12 +15,11 @@ class TestQuestions {
     required this.questions,
   });
 
-  // Factory method to create TestQuestions from JSON
   factory TestQuestions.fromJson(Map<String, dynamic> json) {
     return TestQuestions(
       testId: json['testId'],
-      chapterIndex: json['chapterIndex'],  // Add this line
-      lessonIndex: json['lessonIndex'],    // Add this line
+      chapterIndex: json['chapterIndex'],
+      lessonIndex: json['lessonIndex'],
       testName: json['testName'],
       totalQuestions: json['totalQuestions'],
       questions: List<QuestionModel>.from(
@@ -44,7 +43,6 @@ class QuestionModel {
     required this.questionImageUrl,
   });
 
-  // Factory method to create QuestionModel from JSON
   factory QuestionModel.fromJson(Map<String, dynamic> json) {
     return QuestionModel(
       id: json['id'],

@@ -13,7 +13,7 @@ class Chapter {
 
   factory Chapter.fromJson(Map<String, dynamic> json) {
     return Chapter(
-      id: json['id'] ?? 0,  // Provide a default value of 0 for null cases
+      id: json['id'] ?? 0,
       chapterName: json['chapterName'] ?? 'Unknown',
       chapterImg: json['chapterImg'] ?? '',
       currentlyStudying: json['currentlyStudying'] ?? false,

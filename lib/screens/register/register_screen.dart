@@ -148,7 +148,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               onTap: _isFormValid && !_isLoading
                                   ? () async {
                                 setState(() {
-                                  _isLoading = true; // Start loading
+                                  _isLoading = true;
                                 });
 
                                 final registerModel = Register(
@@ -157,11 +157,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   password: _passwordController.text,
                                 );
 
-                                // Call the register function
                                 await context.read<RegisterProvider>().registerUser (registerModel, context);
 
                                 setState(() {
-                                  _isLoading = false; // Stop loading
+                                  _isLoading = false;
                                 });
                               }
                                   : null,

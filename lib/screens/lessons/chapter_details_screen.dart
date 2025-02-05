@@ -82,9 +82,6 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
       ),
       body: Consumer<ChapterProvider>(
         builder: (context, provider, child) {
-          // if (provider.isLoading) {
-          //   return const Center(child: CircularProgressIndicator());
-          // }
 
           var lessons = provider.lessons;
 
@@ -118,7 +115,7 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Lesson ${lesson.lessonIndex}', // Display lesson index
+                      'Lesson ${lesson.lessonIndex}',
                       style: const TextStyle(fontSize: 18, color: Colors.grey),
                     ),
                     const SizedBox(height: 50),
@@ -134,7 +131,7 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                         children: [
                           _buildTab("LESSONS", showLessons, () {
                             setState(() {
-                              showLessons = true; // Show lessons
+                              showLessons = true;
                             });
                           }),
                           const VerticalDivider(
@@ -144,11 +141,11 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                           ),
                           _buildTab("TESTS", !showLessons, () {
                             setState(() {
-                              showLessons = false; // Show tests
+                              showLessons = false;
                             });
                             Provider.of<ChapterProvider>(context, listen: false)
                                 .fetchTests(
-                                    lesson.lessonId); // Pass the lessonId here
+                                    lesson.lessonId);
                           }),
                         ],
                       ),
@@ -157,11 +154,11 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                     Expanded(
                       child: showLessons
                           ? provider.isLoading
-                          ? const Center(child: CircularProgressIndicator()) // Loader for Lessons
-                          : _buildLessonsContent(lesson.topics) // Pass the topics from the lesson
-                          : provider.isLoading // Assuming you have a loading state for tests
-                          ? const Center(child: CircularProgressIndicator()) // Loader for Tests
-                          : _buildTestsContent(), // Content for the Tests Tab
+                          ? const Center(child: CircularProgressIndicator())
+                          : _buildLessonsContent(lesson.topics)
+                          : provider.isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : _buildTestsContent(),
                     ),
 
                   ],
@@ -202,8 +199,8 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
     return ListView.builder(
       itemCount: topics.length,
       itemBuilder: (context, index) {
-        var topic = topics[index]; // Access the topic at the current index
-        Random random = Random(index); // Generate random color for each item
+        var topic = topics[index];
+        Random random = Random(index);
         Color randomColor = Color.fromARGB(
           255,
           random.nextInt(150) + 50,
@@ -215,9 +212,9 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
           topic.heading,
           topic.subHeading,
           randomColor,
-          topic.level ?? "BEGINNER", // Use level from the Topic, default to "BEGINNER"
+          topic.level ?? "BEGINNER",
           topic,
-          topic.pageStartsFrom ?? 1, // Use pageStartsFrom from the Topic, default to 1
+          topic.pageStartsFrom ?? 1,
         );
       },
     );
@@ -228,8 +225,6 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
       String title, String description, Color color, String level,Topic topic, int pageStartsFrom) {
     return GestureDetector(
         onTap: () async {
-          // print(pageStartsFrom);
-          // print(level);
           Provider.of<ChapterProvider>(context, listen: false)
               .fetchLessonTopics(widget.topicId, widget.lessonId, pageStartsFrom)
               .then((_) {
@@ -241,8 +236,8 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                   lessonId: widget.lessonId,
                   subjectId: widget.subjectId,
                   subjectName: widget.subjectName,
-                  topicId: topic.topicId, // Pass topicId here
-                  pageStartsFrom: pageStartsFrom, // Pass pageStartsFrom here
+                  topicId: topic.topicId,
+                  pageStartsFrom: pageStartsFrom,
                   topicLevel: level
                 ),
               ),
@@ -253,30 +248,30 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
         margin: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 20.0),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20), // Rounded corners
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Colors.white, // Light border color
+            color: Colors.white,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.shade200, // Subtle shadow color
-              blurRadius: 8, // Slight blur for shadow
-              offset: const Offset(0, 4), // Shadow offset
+              color: Colors.grey.shade200,
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Container(
           padding: const EdgeInsets.symmetric(
               vertical: 20,
-              horizontal: 20), // Increased padding inside the card
+              horizontal: 20),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
-                radius: 30, // Increased size of the avatar
+                radius: 30,
                 backgroundColor: color,
                 child: const Icon(Icons.eco,
-                    color: Colors.white, size: 32), // Larger icon
+                    color: Colors.white, size: 32),
               ),
               const SizedBox(width: 20),
               Expanded(
@@ -287,28 +282,28 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            text: '$level\n\n', // Display the level first
+                            text: '$level\n\n',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16, // Larger font size for level
-                              color: Colors.blue, // Level in blue color
+                              fontSize: 16,
+                              color: Colors.blue,
                             ),
                           ),
                           TextSpan(
-                            text: title, // Display the title below
+                            text: title,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 22, // Larger font size for title
-                              color: Colors.black, // Title in black color
+                              fontSize: 22,
+                              color: Colors.black,
                             ),
                           ),
                         ],
                       ),
-                    ), // Increased space between title and description
+                    ),
                     Text(
                       description,
                       style: const TextStyle(
-                        fontSize: 18, // Larger font size for description
+                        fontSize: 18,
                         color: Colors.grey,
                       ),
                     ),
@@ -338,12 +333,12 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
           itemBuilder: (context, index) {
             final test = provider.tests[index];
             Random random =
-                Random(index); // Use index to fix the color for each item
+                Random(index);
             Color randomColor = Color.fromARGB(
               255,
-              random.nextInt(150) + 50, // Random Red value (0-255)
-              random.nextInt(150) + 50, // Random Green value (0-255)
-              random.nextInt(150) + 50, // Random Blue value (0-255)
+              random.nextInt(150) + 50,
+              random.nextInt(150) + 50,
+              random.nextInt(150) + 50,
             );
 
             return _buildTestCard(
@@ -352,7 +347,7 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
               test.heading,
               test.subHeading,
               "${test.totalTime} minutes to complete",
-              randomColor, // Pass the fixed random color
+              randomColor,
               true,
             );
           },
@@ -360,7 +355,7 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
       },
     );
   }
-  Map<int, bool> loadingTests = {}; // Track loading state for each test
+  Map<int, bool> loadingTests = {};
 
   void _startLoading(int testId) {
     setState(() {
@@ -389,20 +384,20 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
           margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 30),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20), // Rounded corners
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Colors.white, // Light border color
+              color: Colors.white,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.shade200, // Subtle shadow color
-                blurRadius: 8, // Slight blur for shadow
-                offset: const Offset(0, 4), // Shadow offset
+                color: Colors.grey.shade200,
+                blurRadius: 8,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16), // Padding inside the card
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -411,7 +406,7 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                     CircleAvatar(
                       backgroundColor: color,
                       radius: 35,
-                      child: const Icon(Icons.eco, color: Colors.white, size: 32), // Icon
+                      child: const Icon(Icons.eco, color: Colors.white, size: 32),
                     ),
                     const SizedBox(width: 20),
                     Expanded(
@@ -439,14 +434,12 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                // Subtitle in the middle
                 Text(
                   subtitle,
                   style: const TextStyle(color: Colors.grey, fontSize: 18),
                   textAlign: TextAlign.start,
                 ),
                 const SizedBox(height: 20),
-                // Button at the bottom
                 SizedBox(
                   height: 60,
                   width: 320,
@@ -455,10 +448,9 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                     borderRadius: BorderRadius.circular(10),
                     child: OutlinedButton(
                       onPressed: () async {
-                        if (loadingTests[test.id] == true) return; // Prevent multiple taps
+                        if (loadingTests[test.id] == true) return;
 
-                        _startLoading(test.id); // Start loading for this test
-
+                        _startLoading(test.id);
                         SharedPreferences prefs = await SharedPreferences.getInstance();
                         await prefs.setInt('testId', test.id);
                         await prefs.remove('remainingTime');
@@ -468,7 +460,7 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                         try {
                           await Provider.of<TestScreenProvider>(context, listen: false)
                               .fetchTestData(test.id);
-
+                          Provider.of<TestScreenProvider>(context,listen: false).clearSelections();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -487,7 +479,7 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                         } catch (e) {
                           print("Error: $e");
                         } finally {
-                          _stopLoading(test.id); // Stop loading only for this test
+                          _stopLoading(test.id);
                         }
                       },
                       style: OutlinedButton.styleFrom(
@@ -523,7 +515,7 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
         if (loadingTests[test.id] == true)
           const Center(
             child: CircularProgressIndicator(
-              color: Colors.blue, // Blue loading spinner
+              color: Colors.blue,
             ),
           ),
       ],

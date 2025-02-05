@@ -38,7 +38,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
   final PageController _pageController = PageController();
   int? selectedPage;
   int currentPage = 1;
-  Map<int, bool> pageFavoriteStatus = {}; // Store favorite status per page
+  Map<int, bool> pageFavoriteStatus = {};
 
   @override
   void initState() {
@@ -59,7 +59,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
     setState(() {
       pageFavoriteStatus.clear();
       for (var item in provider.content) {
-        pageFavoriteStatus[widget.pageStartsFrom] = item.userLiked; // Use pageNumber from the item
+        pageFavoriteStatus[widget.pageStartsFrom] = item.userLiked;
       }
     });
 
@@ -70,24 +70,20 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
 
 
   void goToPage(int page) {
-    // Update local state (selected page, clear content if needed)
     setState(() {
       selectedPage = page;
       Provider.of<ChapterProvider>(context, listen: false).clearContent();
     });
 
-    // Fetch new page's lesson topics
     Provider.of<ChapterProvider>(context, listen: false)
         .fetchLessonTopics(widget.topicId, widget.lessonId, page);
 
-    // Animate to the page (PageView uses 0-index, hence page - 1)
     _pageController.animateToPage(
       page - 1,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
 
-    // Mark the page as completed (regardless of its position)
     Provider.of<ChapterProvider>(context, listen: false)
         .markTopicAsCompleted(widget.topicId, page);
   }
@@ -102,8 +98,6 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              // Provider.of<ChapterProvider>(context, listen: false)
-              //     .markTopicAsViewed(widget.topicId);
               Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -149,9 +143,6 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
       body: SafeArea(
         child: Consumer<ChapterProvider>(
           builder: (context, chapterProvider, child) {
-            // if (chapterProvider.isLoading) {
-            //   return const Center(child: CircularProgressIndicator());
-            // }
 
             if (chapterProvider.errorMessage != null) {
               return Center(
@@ -161,20 +152,13 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                 ),
               );
             }
-
-            // final content = chapterProvider.content;
-            //
-            // // if (content.isEmpty) {
-            // //   return const Center(child: Text("No content available."));
-            // // }
-
             return Column(
               children: [
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
                     itemCount:
-                        chapterProvider.content.length, // Dynamic item count
+                        chapterProvider.content.length,
                     onPageChanged: (index) {
                       int pageNumber = index + 1;
                       setState(() {
@@ -229,7 +213,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                             Row(
                               children: [
                                 Text(
-                                  'L${chapterProvider.lessonIndex}:',
+                                  'L${chapterProvider.lessonIndex}: ',
                                   style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold),
@@ -313,8 +297,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
     if (YoutubePlayer.convertUrlToId(videoUrl) != null) {
       return VideoPlayerContainer(videoUrl: videoUrl);
     } else {
-      // Handle non-YouTube video cases with VideoPlayerController
-      return Container(); // Replace with your other video player widget if needed
+      return Container();
     }
   }
 
@@ -466,7 +449,6 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
 
       if (response != null && response['status'] == 0) {
         setState(() {
-          // Toggle the favorite status for the current page
           pageFavoriteStatus[pageNumber] =
               !(pageFavoriteStatus[pageNumber] ?? false);
         });
@@ -497,7 +479,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (selectedPage != null) {
             double scrollOffset =
-                (selectedPage! - 1) * 66.0; // Adjust item width + margin
+                (selectedPage! - 1) * 66.0;
             scrollController.animateTo(
               scrollOffset,
               duration: const Duration(milliseconds: 300),

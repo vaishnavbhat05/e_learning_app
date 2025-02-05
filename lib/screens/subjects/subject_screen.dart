@@ -14,7 +14,7 @@ class SubjectsScreen extends StatefulWidget {
 class _SubjectsScreenState extends State<SubjectsScreen> {
   @override
   void initState() {
-    super.initState(); // Initialize to avoid LateInitializationError
+    super.initState();
   }
 
   @override
@@ -36,7 +36,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Image.asset(
-                        'assets/images/404.jpeg', // Error image
+                        'assets/images/404.jpeg',
                         width: 350,
                         height: 350,
                       ),
@@ -50,7 +50,6 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                   try {
                     await provider.fetchSubjects();
                   } catch (e) {
-                    // If an error occurs during the refresh, show a toast or dialog
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Failed to load data. Please try again later.'),

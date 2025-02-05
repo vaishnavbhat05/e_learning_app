@@ -75,7 +75,7 @@ class _TestQuestionsScreenState extends State<TestQuestionsScreen> {
             'QUESTIONS',
             style: TextStyle(
               color: Colors.black,
-              fontSize: 18, // Ensure the title text color is visible
+              fontSize: 18,
             ),
           ),
           const SizedBox(

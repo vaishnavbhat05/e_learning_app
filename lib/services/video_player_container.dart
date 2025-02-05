@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
-import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class VideoPlayerContainer extends StatefulWidget {
@@ -34,7 +32,7 @@ class _VideoPlayerContainerState extends State<VideoPlayerContainer> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 250.0, // Set a fixed height or use a dynamic height
+      height: 250.0,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         color: Colors.black,

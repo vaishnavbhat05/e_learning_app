@@ -13,11 +13,11 @@ class RegisterProvider with ChangeNotifier {
   Future<void> registerUser(Register model, BuildContext context) async {
     _setLoading(true);
 
-    ApiHandler apiHandler = ApiHandler(); // Initialize ApiHandler instance
+    ApiHandler apiHandler = ApiHandler();
 
     try {
       final response = await apiHandler.postRequest(
-        Endpoints.sendRegOtp, // Updated to use the endpoint constant
+        Endpoints.sendRegOtp,
         {
           'userName': model.userName,
           'email': model.email,
@@ -25,11 +25,9 @@ class RegisterProvider with ChangeNotifier {
         },
       );
 
-      // Debugging: print the API response
       print("API Response: $response");
 
       if (response['status'] == 0) {
-        // Save data to local storage
         await _saveUserData(model);
 
         Navigator.pushReplacement(
@@ -41,11 +39,9 @@ class RegisterProvider with ChangeNotifier {
           ),),
         );
       } else {
-        // Use API response message for errors
         _showErrorDialog(context, response['message'] ?? 'Unknown error occurred');
       }
     } catch (e) {
-      // Catch any errors and display a message
       print("Error during registration: $e");
       _showErrorDialog(context, "An error occurred while registering. Please try again.");
     } finally {
@@ -54,7 +50,6 @@ class RegisterProvider with ChangeNotifier {
   }
 
 
-  // Save user data in shared preferences
   Future<void> _saveUserData(Register model) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userName', model.userName);
@@ -62,13 +57,11 @@ class RegisterProvider with ChangeNotifier {
     await prefs.setString('password', model.password);
   }
 
-  // Set loading state
   void _setLoading(bool isLoading) {
     _isLoading = isLoading;
     notifyListeners();
   }
 
-  // Show error dialog with the message from API
   void _showErrorDialog(BuildContext context, String message) {
     showDialog(
       context: context,

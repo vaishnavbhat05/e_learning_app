@@ -118,8 +118,8 @@ class _TestScreenState extends State<TestScreen> {
   }
 
   void _submitTest(bool isTimeout) async {
-    if (!mounted || _testSubmitted) return; // Prevent multiple calls
-    _testSubmitted = true; // Set flag to true
+    if (!mounted || _testSubmitted) return;
+    _testSubmitted = true;
 
     if (_timer.isActive) {
       _timer.cancel();
@@ -133,7 +133,6 @@ class _TestScreenState extends State<TestScreen> {
 
     if (!mounted) return;
 
-    // Navigate only once
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -298,9 +297,6 @@ class _TestScreenState extends State<TestScreen> {
         ),
         body: Consumer<TestScreenProvider>(
           builder: (context, provider, child) {
-            // if (provider.isLoading) {
-            //   return const Center(child: CircularProgressIndicator());
-            // }
 
             totalPages = provider.questionStatements.length;
 
@@ -344,7 +340,7 @@ class _TestScreenState extends State<TestScreen> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: SizedBox(
                                   width: 360,
-                                  height: 240, // Fixed height for image
+                                  height: 240,
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(20),
                                     child: Image.network(
@@ -381,7 +377,6 @@ class _TestScreenState extends State<TestScreen> {
                     ),
                     child: Row(
                       children: [
-                        // Use SingleChildScrollView for horizontal scrolling if text overflows
                         Expanded(
                           child: SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
@@ -400,7 +395,7 @@ class _TestScreenState extends State<TestScreen> {
                                         ),
                                       ),
                                       Text(
-                                        'L${provider.testData?.lessonIndex ?? 'N/A'}',
+                                        ' L${provider.testData?.lessonIndex ?? 'N/A'}',
                                         style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
@@ -484,23 +479,18 @@ class _TestScreenState extends State<TestScreen> {
   }
 
   Widget _buildOptionCard(int questionIndex, String option, int optionIndex) {
-    // We display option numbers starting at 1.
     int displayedOptionIndex = optionIndex + 1;
 
     return Consumer<TestScreenProvider>(
       builder: (context, testProvider, child) {
-        // Retrieve the selected option for this question from the provider.
         bool isSelected =
             testProvider.questionAttempts[questionIndex] == displayedOptionIndex;
 
         return GestureDetector(
           onTap: () {
-            // Toggle the selection state.
             if (isSelected) {
-              // If the option is already selected, deselect it.
               testProvider.setSelectedOption(questionIndex, 0);  // Deselect
             } else {
-              // If the option is not selected, select it.
               testProvider.setSelectedOption(questionIndex, displayedOptionIndex);
             }
           },
@@ -643,7 +633,7 @@ class _TestScreenState extends State<TestScreen> {
                               _isLoading
                                   ? const CircularProgressIndicator(
                                       color: Colors
-                                          .white, // Make the spinner white
+                                          .white,
                                     )
                                   : const Text(
                                       'Yes',

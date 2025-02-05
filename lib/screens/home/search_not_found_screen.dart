@@ -21,18 +21,16 @@ class _SearchNotFoundScreenState extends State<SearchNotFoundScreen> {
     if (query.length >= 3) {
       final homeProvider = Provider.of<HomeProvider>(context, listen: false);
 
-      // Call searchSubjects to fetch matching subjects from the provider
       await homeProvider.searchSubjects(query);
 
       setState(() {
-        // Map the search results to subject names
         _suggestions = homeProvider.searchResults
-            .map((subject) => subject.subjectName) // Assuming subjectName is available
+            .map((subject) => subject.subjectName)
             .toList();
       });
     } else {
       setState(() {
-        _suggestions.clear(); // Clear suggestions if the query is too short
+        _suggestions.clear();
       });
     }
   }
@@ -47,7 +45,7 @@ class _SearchNotFoundScreenState extends State<SearchNotFoundScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 250, 250, 250),
-      resizeToAvoidBottomInset: true, // This ensures the keyboard doesn't overlap
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -63,7 +61,7 @@ class _SearchNotFoundScreenState extends State<SearchNotFoundScreen> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MainPage(index: 0), // Navigate to Profile tab
+                  builder: (context) => MainPage(index: 0),
                 ),
               );
             },
@@ -89,7 +87,7 @@ class _SearchNotFoundScreenState extends State<SearchNotFoundScreen> {
                 const SizedBox(height: 60),
                 Center(
                   child: Image.asset(
-                    'assets/images/search_not_found.png', // Ensure this asset exists
+                    'assets/images/search_not_found.png',
                     height: 350,
                   ),
                 ),
@@ -158,7 +156,6 @@ class _SearchNotFoundScreenState extends State<SearchNotFoundScreen> {
 
                           final homeProvider = Provider.of<HomeProvider>(context, listen: false);
                           try {
-                            // Clear existing results and perform new search
                             homeProvider.searchResults.clear();
                             await homeProvider.searchSubjects(keyword);
 
@@ -227,7 +224,7 @@ class _SearchNotFoundScreenState extends State<SearchNotFoundScreen> {
                       ],
                     ),
                     child: ListView.builder(
-                      shrinkWrap: true, // Prevent overflow
+                      shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: _suggestions.length,
                       itemBuilder: (context, index) {
@@ -236,14 +233,14 @@ class _SearchNotFoundScreenState extends State<SearchNotFoundScreen> {
                           onTap: () {
                             setState(() {
                               _searchController.text = _suggestions[index];
-                              _suggestions.clear(); // Clear suggestions after selection
+                              _suggestions.clear();
                             });
                           },
                         );
                       },
                     ),
                   ),
-                const SizedBox(height: 20), // Extra space for better UX when keyboard appears
+                const SizedBox(height: 20),
               ],
             ),
           ),

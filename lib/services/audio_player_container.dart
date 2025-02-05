@@ -27,7 +27,6 @@ class _AudioPlayerContainerState extends State<AudioPlayerContainer> {
   }
 
   void _playPauseAudio() async {
-    // Ensure the URL is not empty
     if (widget.audioUrl.trim().isEmpty) {
       debugPrint("Audio URL is empty");
       return;
@@ -37,7 +36,6 @@ class _AudioPlayerContainerState extends State<AudioPlayerContainer> {
       await _audioPlayer.pause();
     } else {
       try {
-        // Use UrlSource to tell the plugin it’s a network URL
         await _audioPlayer.play(UrlSource(widget.audioUrl));
       } catch (e) {
         debugPrint("Error playing audio: $e");
@@ -52,7 +50,7 @@ class _AudioPlayerContainerState extends State<AudioPlayerContainer> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 100.0, // Adjust the height as needed
+      height: 100.0,
       decoration: BoxDecoration(
         color: Colors.blueAccent,
         borderRadius: BorderRadius.circular(10),

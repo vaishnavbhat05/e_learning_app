@@ -19,18 +19,13 @@ class LoginProvider with ChangeNotifier {
         'password': model.password,
       });
 
-      // Log the full response to debug
       print('Login response: $response');
 
-      // Check the response status
       if (response['status'] == 0) {
-        // Handle missing or null values in response data
         var userData = response['data'] ?? {};
 
-        // Save user data and token in local storage
         await _saveUserData(userData);
 
-        // Ensure the context is correct and navigator is being called in the right place
         if (context.mounted) {
           Navigator.pushReplacement(
             context,
@@ -38,11 +33,9 @@ class LoginProvider with ChangeNotifier {
           );
         }
       } else {
-        // Handle error response, show message
         _showErrorDialog(context, response['message'] ?? 'Unknown error occurred');
       }
     } catch (e) {
-      // Handle error
       print('Login error: $e');
       _showErrorDialog(context, 'Login failed. Please try again.');
     } finally {
@@ -51,7 +44,6 @@ class LoginProvider with ChangeNotifier {
   }
 
 
-  // Save user data in local storage
   Future<void> _saveUserData(Map<String, dynamic> userData) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -61,15 +53,11 @@ class LoginProvider with ChangeNotifier {
     await prefs.setString('refreshToken', userData['refreshToken'] ?? '');
   }
 
-
-
-  // Set loading state
   void _setLoading(bool isLoading) {
     _isLoading = isLoading;
     notifyListeners();
   }
 
-  // Show error dialog
   void _showErrorDialog(BuildContext context, String message) {
     showDialog(
       context: context,

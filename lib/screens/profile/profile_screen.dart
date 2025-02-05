@@ -6,8 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../data/api/api_handler.dart';
-import '../../data/api/endpoints.dart';
 import '../../data/model/profile.dart';
 import '../home/provider/home_provider.dart';
 import '../login/login_screen.dart';
@@ -41,7 +39,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Consumer<ProfileProvider>(
       builder: (context, profileProvider, child) {
-        // Loading state
         if (profileProvider.isLoading) {
           return const Center(
             child: Column(
@@ -49,8 +46,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircularProgressIndicator(),
-                // SizedBox(height: 16),
-                // Text('Loading...', style: TextStyle(fontSize: 18)),
               ],
             ),
           );
@@ -59,7 +54,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (profileProvider.profile == null) {
             return const Center(
               child: Image(
-                image: AssetImage('assets/images/404.jpeg',), // Provide the path to your error image
+                image: AssetImage('assets/images/404.jpeg',),
               ),
             );
         }
@@ -83,7 +78,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     onPressed: () {
                       setState(() {
-                        _isEditing = false; // Save and exit edit mode
+                        _isEditing = false;
                       });
                     },
                   ),
@@ -131,13 +126,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color: Colors.white,
                         context: context,
                         position: const RelativeRect.fromLTRB(
-                            110.0, 70.0, 0.0, 0.0), // Adjust position
+                            110.0, 70.0, 0.0, 0.0),
                         items: [
                           const PopupMenuItem<String>(
                             value: 'edit',
-                            height: 70, // Adjust the height of each item
+                            height: 70,
                             child: SizedBox(
-                              width: 100, // Increase width of the menu
+                              width: 100,
                               child: Row(
                                 children: [
                                   SizedBox(
@@ -177,13 +172,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         elevation: 8.0,
                         shape: RoundedRectangleBorder(
                           borderRadius:
-                              BorderRadius.circular(15.0), // Rounded corners
+                              BorderRadius.circular(15.0),
                         ),
                       );
 
                       if (value == 'edit') {
                         setState(() {
-                          _isEditing = true; // Enable edit mode
+                          _isEditing = true;
                         });
                       } else if (value == 'logout') {
                         _showLogoutConfirmation(context);
@@ -266,7 +261,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: _isEditing
                     ? ClipOval(
                         child: Container(
-                          color: Colors.white.withOpacity(0.4), // Blur effect
+                          color: Colors.white.withOpacity(0.4),
                           width: double.infinity,
                           height: double.infinity,
                         ),
@@ -281,7 +276,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               height: 50,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.blue, // Blue circle around the icon
+                color: Colors.blue,
               ),
               child: const Icon(
                 Icons.camera_alt_outlined,
@@ -368,7 +363,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } else if (value > 75 && value < 100) {
       return Colors.green.shade600;
     } else {
-      return Colors.green.shade600; // Darker green for 100%
+      return Colors.green.shade600;
     }
   }
 
@@ -378,100 +373,119 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Results Section
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(
-                width: 5,
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ResultDetailsScreen(),
+                  ),
+                );
+                final subjectProvider =
+                Provider.of<ResultProvider>(context, listen: false);
+                subjectProvider.fetchResults();
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(width: 5),
+                      SizedBox(
+                        width: 23,
+                        height: 23,
+                        child: Image.asset(
+                          'assets/icons/result_icon.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      const Text(
+                        "Results",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                      const Spacer(),
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.blue,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 50),
+                    child: Text(
+                      "Check the test scores you have \nattempted.",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
               ),
-              SizedBox(
-                width: 23,
-                height: 23,
-                child: Image.asset(
-                  'assets/icons/result_icon.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-              const SizedBox(width: 20),
-              const Text(
-                "Results",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ResultDetailsScreen()));
-                  final subjectProvider =
-                      Provider.of<ResultProvider>(context, listen: false);
-                  subjectProvider.fetchResults();
-                },
-                icon: const Icon(
-                  Icons.arrow_forward_ios,
-                  color: Colors.blue,
-                  size: 20,
-                ),
-              ),
-            ],
-          ),
-          const Padding(
-            padding:
-                EdgeInsets.only(left: 50), // Adjust left padding for alignment
-            child: Text(
-              "Check the test scores you have \nattempted.",
-              style: TextStyle(color: Colors.grey),
             ),
           ),
-          const SizedBox(height: 10),
           const Divider(thickness: 0.3),
 
-          // Notification Settings Section
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.notifications,
-                color: Colors.orange,
-                size: 28,
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _isNotificationEnabled = !_isNotificationEnabled;
+                });
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.notifications,
+                        color: Colors.orange,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 20),
+                      const Text(
+                        "Notification Settings",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                      const Spacer(),
+                      Switch(
+                        value: _isNotificationEnabled,
+                        onChanged: (value) {
+                          setState(() {
+                            _isNotificationEnabled = value;
+                          });
+                        },
+                        activeColor: Colors.white,
+                        activeTrackColor: Colors.blue,
+                        inactiveThumbColor: Colors.white,
+                        inactiveTrackColor: Colors.grey[300],
+                      ),
+                    ],
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 50),
+                    child: Text(
+                      "Turn off the notification if you don’t \nwant to receive.",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
               ),
-              const SizedBox(width: 20),
-              const Text(
-                "Notification Settings",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-              const Spacer(),
-              Switch(
-                value: _isNotificationEnabled,
-                onChanged: (value) {
-                  setState(() {
-                    _isNotificationEnabled = value;
-                  });
-                },
-                activeColor: Colors.white,
-                activeTrackColor: Colors.blue,
-                inactiveThumbColor: Colors.white,
-                inactiveTrackColor: Colors.grey[300],
-              ),
-            ],
-          ),
-          const Padding(
-            padding:
-                EdgeInsets.only(left: 50), // Adjust left padding for alignment
-            child: Text(
-              "Turn off the notification if you don’t \nwant to receive.",
-              style: TextStyle(color: Colors.grey),
             ),
           ),
-          const SizedBox(height: 10),
           const Divider(thickness: 0.3),
         ],
       ),
@@ -490,12 +504,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             padding: const EdgeInsets.all(20.0),
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                  minHeight: 220, maxWidth: 340), // Limit the height
+                  minHeight: 220, maxWidth: 340),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Centering Logout Title and Text
                   const Center(
                     child: Column(
                       children: [
@@ -516,7 +529,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             'Are you sure you want to logout now?',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 20, // Slightly smaller text size
+                              fontSize: 20,
                               color: Colors.grey,
                             ),
                           ),
@@ -529,20 +542,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(
-                        height: 60, // Increased height
-                        width: 130, // Reduced width
+                        height: 60,
+                        width: 130,
                         child: OutlinedButton(
                           onPressed: () {
                             Navigator.pop(context);
                           },
                           style: OutlinedButton.styleFrom(
                             backgroundColor:
-                                Colors.transparent, // Transparent background
+                                Colors.transparent,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                             side: const BorderSide(
-                                color: Colors.blue, width: 2), // Blue border
+                                color: Colors.blue, width: 2),
                           ),
                           child: const Text(
                             'No',
@@ -552,13 +565,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(width: 30),
                       SizedBox(
-                        height: 60, // Increased height
-                        width: 130, // Reduced width
+                        height: 60,
+                        width: 130,
                         child: Material(
-                          elevation: 6, // Elevation for shadow
-                          shadowColor: Colors.blue[400], // Shadow color
+                          elevation: 6,
+                          shadowColor: Colors.blue[400],
                           borderRadius: BorderRadius.circular(
-                              10), // Matches button border radius
+                              10),
                           child: OutlinedButton(
                             onPressed: () async {
                               await logout();
@@ -571,16 +584,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               );
                             },
                             style: OutlinedButton.styleFrom(
-                              backgroundColor: Colors.blue, // Blue background
+                              backgroundColor: Colors.blue,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               side: const BorderSide(
-                                  color: Colors.blue), // Blue border
+                                  color: Colors.blue),
                             ),
                             child: Row(
                               mainAxisAlignment:
-                                  MainAxisAlignment.center, // Centers content
+                                  MainAxisAlignment.center,
                               children: [
                                 const SizedBox(width: 8),
                                 const Text(
@@ -609,39 +622,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
   }
   Future<void> logout() async {
-    // try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-    //   String? accessToken = prefs.getString('accessToken');
-    //
-    //   final apiHandler = ApiHandler();
-    //
-    //   if (accessToken == null) {
-    //     print("Access token is missing. Please log in again.");
-    //     return;
-    //   }
-    //
-    //   final response = await apiHandler.postRequest(
-    //     Endpoints.logout,
-    //     headers: {"Authorization": "Bearer $accessToken"},
-    //   );
-    //
-    //   if (response.statusCode == 200) {
-    //     print("Logout successful");
         await prefs.clear();
         await prefs.remove('accessToken');
         context.read<HomeProvider>().resetState();
         context.read<ProfileProvider>().clearProfile();
-  //
-  //       Navigator.pop(context);
-  //       Navigator.pushReplacement(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => const LoginScreen()),
-  //       );
-  //     } else {
-  //       print("Failed to logout: ${response.body}");
-  //     }
-  //   } catch (e) {
-  //     print("Error logging out: $e");
-  //   }
   }
 }

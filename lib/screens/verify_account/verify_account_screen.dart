@@ -46,7 +46,7 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
   void _loadPassword() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      password = prefs.getString('password'); // Retrieve stored password
+      password = prefs.getString('password');
     });
   }
   void _checkAllFieldsFilled() {
@@ -54,7 +54,6 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
       _allFieldsFilled =
           _controllers.every((controller) => controller.text.isNotEmpty);
     });
-    // Debugging output to verify state changes
     if (kDebugMode) {
       print('All fields filled: $_allFieldsFilled');
     }
@@ -65,7 +64,7 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Password is missing! Please try again.')),
       );
-      return; // Stop execution if password is null
+      return;
     }
 
     final provider = Provider.of<RegisterProvider>(context, listen: false);
@@ -73,7 +72,7 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
     final registerModel = Register(
       userName: widget.userName,
       email: widget.email,
-      password: widget.password, // Safe because we checked for null above
+      password: widget.password,
     );
     try {
       await provider.registerUser(registerModel, context);
@@ -103,10 +102,8 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
   void _onVerifyPressed() async {
 
     if (_allFieldsFilled) {
-      // Concatenate OTP from the controllers
       String otp = _controllers.map((controller) => controller.text).join();
 
-      // Get the provider to call verifyAccount()
       final provider =
           Provider.of<VerifyAccountProvider>(context, listen: false);
 
@@ -117,10 +114,9 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
       try {
         await provider.verifyAccount(otp, context);
       } catch (e) {
-        // Handle error if needed
       } finally {
         setState(() {
-          _isLoading = false; // Set loading to false
+          _isLoading = false;
         });
       }
     } else {
@@ -222,7 +218,6 @@ class _VerifyAccountScreenState extends State<VerifyAccountScreen> {
                         );
                       }),
                     ),
-                    // Display error message if OTP is invalid
                     if (_errorMessage != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0,left: 45),

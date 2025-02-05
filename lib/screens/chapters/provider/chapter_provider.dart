@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/api/api_handler.dart';
-import '../../../data/model/chapter.dart'; // Import Chapter Model
+import '../../../data/model/chapter.dart';
 import '../../../data/api/endpoints.dart';
 import '../../../data/model/content.dart';
 import '../../../data/model/lesson.dart';
 import '../../../data/model/liked_topic.dart';
 import '../../../data/model/studying_progress.dart';
-import '../../../data/model/test.dart'; // Import Endpoints
+import '../../../data/model/test.dart';
 
 class ChapterProvider with ChangeNotifier {
   List<Chapter> _chapters = [];
@@ -25,7 +25,7 @@ class ChapterProvider with ChangeNotifier {
   List<TestModel> _tests = [];
   List<TestModel> get tests => _tests;
 
-  List<Content> _content = []; // List to store fetched content
+  List<Content> _content = [];
   List<Content> get content => _content;
   int _currentPage = 1;
   int _totalPages = 1;

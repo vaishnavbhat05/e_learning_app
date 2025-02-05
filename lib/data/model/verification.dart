@@ -11,7 +11,6 @@ class VerifyAccount {
     required this.otp,
   });
 
-  // Convert the model into a map
   Map<String, String> toJson() {
     return {
       'userName': userName,
@@ -21,4 +20,3 @@ class VerifyAccount {
     };
   }
 }
-

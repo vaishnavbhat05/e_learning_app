@@ -16,7 +16,7 @@ class ProfileProvider with ChangeNotifier {
 
   void clearProfile() {
     _profile = null;
-    notifyListeners(); // Notify to rebuild the UI
+    notifyListeners();
   }
 
   final ApiHandler apiHandler = ApiHandler();
@@ -27,33 +27,26 @@ class ProfileProvider with ChangeNotifier {
   Future<void> fetchProfile(int userId) async {
     _setLoading(true);
     try {
-      // Get the access token from SharedPreferences (or any storage method)
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? accessToken = prefs.getString('accessToken'); // Assuming 'accessToken' key
-
+      String? accessToken = prefs.getString('accessToken');
       if (accessToken == null) {
         print('Access token is null, cannot fetch profile');
         return;
       }
-
-      // Set the Authorization header with the token
       final response = await apiHandler.getRequest(
         Endpoints.profile,
         headers: {
-          'Authorization': 'Bearer $accessToken', // Add Authorization header
+          'Authorization': 'Bearer $accessToken',
         },
       );
 
-      // Check if response is valid and contains 'data'
       if (response != null && response['status'] == 0 && response['data'] != null) {
         _profile = Profile.fromJson(response['data']);
         notifyListeners();
       } else {
-        // Handle API error (if any)
         print('Error fetching profile or response is null');
       }
     } catch (e) {
-      // Handle error
       print('Error: $e');
     } finally {
       _setLoading(false);
@@ -78,7 +71,6 @@ class ProfileProvider with ChangeNotifier {
       var request = http.MultipartRequest('PUT', uri);
       request.headers['Authorization'] = 'Bearer $accessToken';
 
-      // Add username only if changed
       if (userName != null && userName.isNotEmpty) {
         request.fields['userName'] = userName;
       }

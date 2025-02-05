@@ -37,24 +37,24 @@ class CustomTextField extends StatelessWidget {
         obscureText: obscureText,
         obscuringCharacter: '*',
         style: const TextStyle(
-          fontSize: 18,  // Increase font size of the text entered by the user
+          fontSize: 18,
         ),
         decoration: InputDecoration(
           labelText: labelText,
           labelStyle: const TextStyle(
             color: Colors.grey,
-            fontSize: 18,  // Increase font size of the label text
+            fontSize: 18,
           ),
           hintText: hintText,
           hintStyle: const TextStyle(
             color: Colors.grey,
-            fontSize: 18,  // Increase font size of the hint text
+            fontSize: 18,
           ),
           suffixIcon: isPasswordField
               ? IconButton(
             icon: Icon(
               obscureText ? Icons.visibility_off : Icons.visibility,
-              color: Colors.grey, // Grey color for the icon
+              color: Colors.grey,
             ),
             onPressed: suffixIconAction,
           )

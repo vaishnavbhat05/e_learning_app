@@ -1,5 +1,3 @@
-import 'package:flutter/cupertino.dart';
-
 class LikedTopic {
   final int id;
   final String heading;

@@ -41,8 +41,8 @@ class Profile {
       return value.toDouble();
     }
     if (value is String) {
-      return double.tryParse(value) ?? 0.0; // Return 0.0 if parsing fails
+      return double.tryParse(value) ?? 0.0;
     }
-    return 0.0; // Default value if the value is null or not parsable
+    return 0.0;
   }
 }

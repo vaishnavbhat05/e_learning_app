@@ -25,11 +25,10 @@ class TestScreenProvider extends ChangeNotifier {
   Map<int, int> get questionAttempts => _questionAttempts;
 
   void setSelectedOption(int questionIndex, int option) {
-    // Set the option to 0 if it is deselected.
     if (option == 0) {
-      _questionAttempts.remove(questionIndex);  // Deselect the option
+      _questionAttempts.remove(questionIndex);
     } else {
-      _questionAttempts[questionIndex] = option;  // Select the new option
+      _questionAttempts[questionIndex] = option;
     }
     notifyListeners();
   }
@@ -58,16 +57,12 @@ class TestScreenProvider extends ChangeNotifier {
   //SUBMIT ANSWER API//
 
   Future<bool> submitAnswer(int selectedOption, int questionId, int testId) async {
-    // isLoading = true;
-    // notifyListeners();
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? accessToken = prefs.getString('accessToken');
 
     if (accessToken == null) {
       print('Access token is null, cannot submit test');
-      // isLoading = false;
-      // notifyListeners();
       return false;
     }
 
@@ -92,8 +87,6 @@ class TestScreenProvider extends ChangeNotifier {
       if (response.statusCode == 200) {
         var responseData = json.decode(response.body);
         print('Response Data: $responseData');
-        // isLoading = false;
-        // notifyListeners();
         return true;
       }
       else if (response.statusCode == 401) {
@@ -101,11 +94,9 @@ class TestScreenProvider extends ChangeNotifier {
         bool refreshed = await refreshAccessToken();
 
         if (refreshed) {
-          return submitAnswer(selectedOption, questionId, testId); // Retry request
+          return submitAnswer(selectedOption, questionId, testId);
         } else {
           print('Token refresh failed. Logging out user.');
-          // isLoading = false;
-          // notifyListeners();
           return false;
         }
       }
@@ -113,15 +104,11 @@ class TestScreenProvider extends ChangeNotifier {
         print('Failed to submit answer. Status code: ${response.statusCode}');
         var errorResponse = json.decode(response.body);
         print('Error Response: $errorResponse');
-        // isLoading = false;
-        // notifyListeners();
         return false;
       }
     } catch (e, stackTrace) {
       print('Error during POST request: $e');
       print('Stack Trace: $stackTrace');
-      // isLoading = false;
-      // notifyListeners();
       return false;
     }
   }
@@ -146,7 +133,6 @@ class TestScreenProvider extends ChangeNotifier {
         var data = json.decode(response.body);
         String newAccessToken = data['accessToken'];
 
-        // Save new token
         await prefs.setString('accessToken', newAccessToken);
         print('Access token refreshed successfully.');
         return true;
@@ -159,7 +145,6 @@ class TestScreenProvider extends ChangeNotifier {
       return false;
     }
   }
-
 
 
 
@@ -224,9 +209,9 @@ class TestScreenProvider extends ChangeNotifier {
       print(response);
 
       if (response['status'] == 0) {
-        final data = response['data']; // The entire data object
+        final data = response['data'];
         if (data != null) {
-          testData = TestQuestions.fromJson(data); // Map response data to TestQuestions model
+          testData = TestQuestions.fromJson(data);
           print('Test Data: $testData');
         } else {
           errorMessage = 'No test data available.';
@@ -236,9 +221,9 @@ class TestScreenProvider extends ChangeNotifier {
       }
 
       if (response['status'] == 0) {
-        final questionsData = response['data']['questions'];  // Get the list of questions
+        final questionsData = response['data']['questions'];
         if (questionsData != null) {
-          _extractTestData(questionsData);  // Pass the list to extract function
+          _extractTestData(questionsData);
         } else {
           errorMessage = 'No test data available.';
         }

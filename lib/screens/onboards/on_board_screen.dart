@@ -36,14 +36,13 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
               ? [
             GestureDetector(
               onTap: () {
-                // Skip button logic
-                _markOnboardingComplete(); // Mark onboarding as completed
+                _markOnboardingComplete();
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
                     builder: (_) => const LoginScreen(),
                   ),
-                      (route) => false, // Remove all routes until HomeScreen
+                      (route) => false,
                 );
               },
               child: const Padding(
@@ -95,7 +94,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                   const Spacer(),
                   Row(
                     children: [
-                      if (currentPage == onBoardData.length - 1) // Show text only on the last page
+                      if (currentPage == onBoardData.length - 1)
                         const Padding(
                           padding: EdgeInsets.only(right: 16.0),
                           child: Text(
@@ -110,7 +109,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                       GestureDetector(
                         onTap: () {
                           if (currentPage == onBoardData.length - 1) {
-                            _markOnboardingComplete(); // Mark onboarding as completed
+                            _markOnboardingComplete();
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
@@ -172,14 +171,14 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
       children: [
         Image.asset(
           onBoardData[index].image,
-          fit: BoxFit.cover, // Ensures the image fills its container
-          width: double.infinity, // Ensures it spans the width of the screen
+          fit: BoxFit.cover,
+          width: double.infinity,
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
             children: [
-              const SizedBox(height: 20), // Small spacing between image and text
+              const SizedBox(height: 20),
               Text(
                 onBoardData[index].title,
                 style: const TextStyle(

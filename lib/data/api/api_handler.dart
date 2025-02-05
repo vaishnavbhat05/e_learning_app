@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'endpoints.dart'; // Import Endpoints class
+import 'endpoints.dart';
 
 class ApiHandler {
   ApiHandler();
@@ -16,7 +16,6 @@ class ApiHandler {
 
       final response = await http.get(Uri.parse('${Endpoints.baseUrl}$endpoint'), headers: headers);
 
-      // If unauthorized (401), attempt to refresh the access token and retry the request
       if (response.statusCode == 401) {
         accessToken = await _refreshAccessToken();
         if (accessToken != null) {
@@ -46,7 +45,6 @@ class ApiHandler {
         body: jsonEncode(body),
       );
 
-      // If unauthorized (401), attempt to refresh the access token and retry the request
       if (response.statusCode == 401) {
         accessToken = await _refreshAccessToken();
         if (accessToken != null) {
@@ -80,7 +78,6 @@ class ApiHandler {
         body: jsonEncode(body),
       );
 
-      // If unauthorized (401), attempt to refresh the access token and retry the request
       if (response.statusCode == 401) {
         accessToken = await _refreshAccessToken();
         if (accessToken != null) {
@@ -118,17 +115,15 @@ class ApiHandler {
         throw Exception('Refresh token not found. Please log in again.');
       }
 
-      // Request to refresh the access token
       final response = await http.post(
-        Uri.parse('${Endpoints.baseUrl}/refresh-token'), // Adjust the endpoint to your API's refresh token endpoint
+        Uri.parse('${Endpoints.baseUrl}/refresh-token'),
         body: {'refresh_token': refreshToken},
       );
 
-      // If the refresh token request is successful, save the new access token
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         String newAccessToken = data['access_token'];
-        String newRefreshToken = data['refresh_token']; // Optional: if the refresh token is also updated
+        String newRefreshToken = data['refresh_token'];
         await saveTokens(newAccessToken, newRefreshToken);
         return newAccessToken;
       } else {

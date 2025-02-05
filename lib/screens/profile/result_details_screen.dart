@@ -38,7 +38,7 @@ class _ResultDetailsScreenState extends State<ResultDetailsScreen> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MainPage(index: 2), // Navigate to Profile tab
+                  builder: (context) => MainPage(index: 2),
                 ),
               );
             },
@@ -54,7 +54,6 @@ class _ResultDetailsScreenState extends State<ResultDetailsScreen> {
               return const Center(child: Text('No results available.'));
             }
 
-            // Filter results based on selected subject
             final filteredResults = selectedSubject == "All"
                 ? provider.results!
                 : provider.results!.where((result) => result.subjectName == selectedSubject).toList();
@@ -127,9 +126,9 @@ class _ResultDetailsScreenState extends State<ResultDetailsScreen> {
                   Expanded(
                     child: Scrollbar(
                       controller: _scrollController,
-                      thickness: 8, // Adjust scrollbar thickness
-                      radius: const Radius.circular(10), // Make it rounded
-                      thumbVisibility: true, // Always visible scrollbar
+                      thickness: 8,
+                      radius: const Radius.circular(10),
+                      thumbVisibility: true,
                       child: ListView.builder(
                         controller: _scrollController,
                         itemCount: filteredResults.length,
@@ -142,6 +141,7 @@ class _ResultDetailsScreenState extends State<ResultDetailsScreen> {
                             rightAnswers: result.correctAnsweredQuestion,
                             totalQuestions: result.totalQuestion,
                             score: result.securedMarks,
+                            attemptedQuestion: result.attemptedQuestion
                           );
                         },
                       ),
@@ -163,6 +163,7 @@ class _ResultDetailsScreenState extends State<ResultDetailsScreen> {
     required int rightAnswers,
     required int totalQuestions,
     required int score,
+    required int attemptedQuestion
   }) {
     Color color = _getStatColor(score);
     return Card(
@@ -186,7 +187,7 @@ class _ResultDetailsScreenState extends State<ResultDetailsScreen> {
                   ),
                 ),
                 Text(
-                  'lesson $lesson',
+                  'Lesson $lesson',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -236,7 +237,7 @@ class _ResultDetailsScreenState extends State<ResultDetailsScreen> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      "$rightAnswers of $totalQuestions",
+                      "$attemptedQuestion of $totalQuestions",
                       style: const TextStyle(
                         fontSize: 16,
                         color: Colors.black,

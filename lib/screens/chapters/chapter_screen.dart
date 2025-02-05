@@ -28,13 +28,10 @@ class TriangleClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     Path path = Path();
-    // Start from top left
     path.lineTo(0, 0);
-    // Go to top right
-    path.lineTo(size.width * 1, 0); // Increase the width for a larger base
-    // Go to bottom center (reduce height for a smaller triangle)
-    path.lineTo(size.width / 2, size.height / 2); // Smaller height
-    path.close(); // Close the path (back to the starting point)
+    path.lineTo(size.width * 1, 0);
+    path.lineTo(size.width / 2, size.height / 2);
+    path.close();
     return path;
   }
 
@@ -62,7 +59,7 @@ class _ChapterScreenState extends State<ChapterScreen> {
 
   @override
   void dispose() {
-    _scrollController.dispose(); // Dispose the ScrollController
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -71,7 +68,7 @@ class _ChapterScreenState extends State<ChapterScreen> {
         Provider.of<ChapterProvider>(context, listen: false);
 
     setState(() {
-      selectedChapterIndex = -1; // Set loading state
+      selectedChapterIndex = -1;
       chapterProvider.clearData();
     });
 
@@ -81,14 +78,13 @@ class _ChapterScreenState extends State<ChapterScreen> {
             .indexWhere((chapter) => chapter.id == initialChapterId);
 
         if (newIndex == -1) {
-          newIndex = 0; // Default to first chapter if not found
+          newIndex = 0;
         }
 
         setState(() {
           selectedChapterIndex = newIndex;
         });
 
-        // Fetch lessons & liked topics for the selected chapter
         chapterProvider
             .fetchLessonsByChapter(chapterProvider.chapters[newIndex].id);
         chapterProvider.fetchLikedTopics(widget.subjectId);
@@ -97,7 +93,7 @@ class _ChapterScreenState extends State<ChapterScreen> {
   }
 
   Color getFixedColorForCard(int index) {
-    Random random = Random(index); // Use index as a seed for consistency
+    Random random = Random(index);
     return Color.fromRGBO(
       random.nextInt(150) + 50,
       random.nextInt(150) + 50,
@@ -111,39 +107,6 @@ class _ChapterScreenState extends State<ChapterScreen> {
         Provider.of<ChapterProvider>(context, listen: false);
     await chapterProvider.fetchChapters(widget.subjectId);
     await chapterProvider.fetchLessonsByChapter(chapterProvider.chapters[0].id);
-    // await chapterProvider.fetchLikedTopics(widget.subjectId);
-  }
-
-  Widget _buildTab(String label, int index) {
-    bool isSelected = _selectedIndex == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedIndex = index;
-        });
-        if (_selectedIndex == 1) {
-          final provider = Provider.of<ChapterProvider>(context, listen: false);
-          provider.fetchStudyProgress(widget.subjectId);
-        }
-        if (_selectedIndex == 2) {
-          final provider = Provider.of<ChapterProvider>(context, listen: false);
-          provider.fetchLikedTopics(widget.subjectId);
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? Colors.blue : Colors.grey.shade500,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   @override
@@ -201,9 +164,9 @@ class _ChapterScreenState extends State<ChapterScreen> {
                               ),
                             ),
                           ],
-                        ), // ALL Tab
-                        _buildStudyingContent(chapterProvider), // STUDYING Tab
-                        _buildLikedTab(chapterProvider), // LIKED Tab
+                        ),
+                        _buildStudyingContent(chapterProvider),
+                        _buildLikedTab(chapterProvider),
                       ],
                     ),
                   );
@@ -230,35 +193,68 @@ class _ChapterScreenState extends State<ChapterScreen> {
     return Center(
       child: Container(
         height: 50,
-        width: 400,
+        width: 380,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildTab('ALL', 0),
+            Expanded(child: _buildTab('ALL', 0)),
             const VerticalDivider(
-                color: Colors.grey, width: 60, thickness: 0.3),
-            _buildTab('STUDYING', 1),
+              color: Colors.grey,
+              width: 50,
+              thickness: 0.3,
+            ),
+            Expanded(child: _buildTab('STUDYING', 1)),
             const VerticalDivider(
-                color: Colors.grey, width: 60, thickness: 0.5),
-            _buildTab('LIKED', 2),
+              color: Colors.grey,
+              width: 50,
+              thickness: 0.2,
+            ),
+            Expanded(child: _buildTab('LIKED', 2)),
           ],
         ),
       ),
     );
   }
 
-  // Widget _buildChapterAndLessonList(ChapterProvider provider) {
-  //   return Column(
-  //     children: [
-  //       _buildChapterList(provider),
-  //       Expanded(child: _buildLessonList(provider)),
-  //     ],
-  //   );
-  // }
+  Widget _buildTab(String label, int index) {
+    bool isSelected = _selectedIndex == index;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _selectedIndex = index;
+          });
+          if (_selectedIndex == 1) {
+            final provider =
+            Provider.of<ChapterProvider>(context, listen: false);
+            provider.fetchStudyProgress(widget.subjectId);
+          }
+          if (_selectedIndex == 2) {
+            final provider =
+            Provider.of<ChapterProvider>(context, listen: false);
+            provider.fetchLikedTopics(widget.subjectId);
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.blue : Colors.grey.shade500,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildLikedTab(ChapterProvider provider) {
     if (provider.isLoading) {
@@ -273,7 +269,7 @@ class _ChapterScreenState extends State<ChapterScreen> {
       itemBuilder: (context, index) {
         final LikedTopic topic = provider.likedTopics[index];
 
-        Random random = Random(index); // Generate random color for each item
+        Random random = Random(index);
         Color randomColor = Color.fromARGB(
           255,
           random.nextInt(150) + 50,
@@ -324,7 +320,7 @@ class _ChapterScreenState extends State<ChapterScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 20), // Space between avatar and text
+                  const SizedBox(width: 20),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -333,38 +329,38 @@ class _ChapterScreenState extends State<ChapterScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '${topic.level}\n', // Remove extra newline after level
+                              '${topic.level}\n',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
-                                color: Colors.blue, // Level in blue color
+                                color: Colors.blue,
                               ),
                             ),
                             Text(
-                              'PageNo: ${topic.pageNumber}', // Display the page number
+                              'PageNo: ${topic.pageNumber}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16, // Adjust size for the page number
+                                fontSize: 16,
                                 color: Colors.black,
                               ),
                             ),
                           ],
                         ),
                         Text(
-                          topic.heading, // Display title directly after level
+                          topic.heading,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 22, // Larger font size for title
+                            fontSize: 22,
                             color: Colors.black,
                           ),
                         ),
                         const SizedBox(
-                          height: 6, // Increased space between title and description
+                          height: 6,
                         ),
                         Text(
                           topic.subHeading,
                           style: const TextStyle(
-                            fontSize: 18, // Larger font size for description
+                            fontSize: 18,
                             color: Colors.grey,
                           ),
                         ),
@@ -388,31 +384,19 @@ class _ChapterScreenState extends State<ChapterScreen> {
     } else if (chapterProvider.studyProgress.isEmpty) {
       return const Center(child: Text("No study progress available."));
     }
-    // // Check if the list is empty
-    // if (studyProgressList.isEmpty) {
-    //   return const Padding(
-    //     padding: EdgeInsets.all(20),
-    //     child: Text(
-    //       "No study progress available.",
-    //       style: TextStyle(fontSize: 18),
-    //     ),
-    //   );
-    // }
 
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24,vertical: 10),
       child: SizedBox(
         height: 320,
         child: ListView.builder(
-          scrollDirection: Axis.horizontal, // Scroll horizontally
-          itemCount: studyProgressList.length, // Number of items in the list
+          scrollDirection: Axis.horizontal,
+          itemCount: studyProgressList.length,
           itemBuilder: (context, index) {
-            // Get each study progress item
             var item = studyProgressList[index];
 
             return GestureDetector(
               onTap: () {
-                // Handle tap (optional)
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -440,96 +424,98 @@ class _ChapterScreenState extends State<ChapterScreen> {
   Widget _buildChapterList(ChapterProvider provider) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Row(
-        children: List.generate(provider.chapters.length, (index) {
-          final chapter = provider.chapters[index];
-          return Padding(
-            padding: const EdgeInsets.all(10),
-            child: GestureDetector(
-              onTap: () async {
-                setState(() {
-                  selectedChapterIndex = index;
-                });
-                await provider.fetchLessonsByChapter(chapter.id);
-              },
-              child: Container(
-                width: 160,
-                height: 175,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                  boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 5)],
-                ),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Container(
-                          height: 100,
-                          decoration: BoxDecoration(
-                            color: getFixedColorForCard(index),
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(20),
-                              topRight: Radius.circular(20),
-                            ),
-                          ),
-                          child: Align(
-                            child: Image.network(
-                              chapter.chapterImg.trim(),
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.only(
-                                bottomLeft: Radius.circular(20),
-                                bottomRight: Radius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        child: Row(
+          children: List.generate(provider.chapters.length, (index) {
+            final chapter = provider.chapters[index];
+            return Padding(
+              padding: const EdgeInsets.all(10),
+              child: GestureDetector(
+                onTap: () async {
+                  setState(() {
+                    selectedChapterIndex = index;
+                  });
+                  await provider.fetchLessonsByChapter(chapter.id);
+                },
+                child: Container(
+                  width: 160,
+                  height: 175,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                    boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 5)],
+                  ),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Container(
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: getFixedColorForCard(index),
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(20),
+                                topRight: Radius.circular(20),
                               ),
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 10),
-                              child: SingleChildScrollView(
-                                child: Text(
-                                  chapter.chapterName,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                            child: Align(
+                              child: Image.network(
+                                chapter.chapterImg.trim(),
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(20),
+                                  bottomRight: Radius.circular(20),
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 10),
+                                child: SingleChildScrollView(
+                                  child: Text(
+                                    chapter.chapterName,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    // Stack pointer (triangle) for selected chapter
-                    if (selectedChapterIndex == index)
-                      Positioned(
-                        bottom: -20,
-                        left: 70,
-                        child: ClipPath(
-                          clipper: TriangleClipper(),
-                          child: Container(
-                              width: 20,
-                              height: 20,
-                              color: Colors.white // Triangle color
-                              ),
-                        ),
+                        ],
                       ),
-                  ],
+                      if (selectedChapterIndex == index)
+                        Positioned(
+                          bottom: -20,
+                          left: 70,
+                          child: ClipPath(
+                            clipper: TriangleClipper(),
+                            child: Container(
+                                width: 20,
+                                height: 20,
+                                color: Colors.white // Triangle color
+                                ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        }),
+            );
+          }),
+        ),
       ),
     );
   }
@@ -546,9 +532,6 @@ class _ChapterScreenState extends State<ChapterScreen> {
                     .completedLessonInPercentage ==
                 100);
 
-    // if (provider.isLoading) {
-    //   return const Center(child: CircularProgressIndicator());
-    // }
     return GestureDetector(
       onTap: () async {
         SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -582,7 +565,7 @@ class _ChapterScreenState extends State<ChapterScreen> {
         }
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -678,18 +661,17 @@ class _ChapterScreenState extends State<ChapterScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Container(
-                  width: 2, // Thickness of the line
-                  height: 20, // Height of the line below the dot/check icon
-                  color: Colors.grey[300], // Line color
+                  width: 2,
+                  height: 20,
+                  color: Colors.grey[300],
                 ),
               ),
               const SizedBox(height: 7),
-              // Conditionally show the check icon or the dot container
               topic.completed
                   ? const Icon(
-                      Icons.check, // Check icon for completed topic
-                      color: Colors.green, // Green color for the check icon
-                      size: 18, // Icon size
+                      Icons.check,
+                      color: Colors.green,
+                      size: 18,
                     )
                   : Icon(
                       Icons.circle_sharp,
@@ -697,18 +679,17 @@ class _ChapterScreenState extends State<ChapterScreen> {
                       color: Colors.grey[300],
                     ),
               const SizedBox(height: 17),
-              // Line below the dot/check icon
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Container(
-                  width: 2, // Thickness of the line
-                  height: 40, // Height of the line below the dot/check icon
-                  color: Colors.grey[300], // Line color
+                  width: 2,
+                  height: 40,
+                  color: Colors.grey[300],
                 ),
               ),
             ],
           ),
-          const SizedBox(width: 10), // Space between the dot/check and text
+          const SizedBox(width: 10),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),

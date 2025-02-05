@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../data/api/api_handler.dart';
@@ -164,7 +163,7 @@ class HomeProvider with ChangeNotifier {
       } else {
         if (responseBody?['message'] == 'User currently studying records not found for the specified subject') {
           _currentlyStudyingChapters = [];
-          await fetchRecommendedChapters(); // Fetch recommended chapters if no study progress is found
+          await fetchRecommendedChapters();
         } else {
           _currentlyStudyingChapters = [];
           _errorMessage = responseBody?['message'] ?? 'Failed to fetch study progress.';
