@@ -1,8 +1,39 @@
 import 'package:e_learning_app/screens/tests/test_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../screens/tests/provider/test_screen_provider.dart';
 
-class TestQuestionsScreen extends StatelessWidget {
-  const TestQuestionsScreen({super.key});
+class TestQuestionsScreen extends StatefulWidget {
+  final int lessonId;
+  final int chapterId;
+  final int testId;
+  final int totalTime;
+  final int remainingTime;
+  final int subjectId;
+  final String subjectName;
+  final int topicId;
+  final int selectedQuestionIndex;
+  const TestQuestionsScreen(
+      {super.key,
+        required this.chapterId,
+        required this.lessonId,
+      required this.testId,
+      required this.totalTime,
+      required this.remainingTime,
+      required this.subjectId,
+      required this.subjectName,
+      required this.topicId,
+      required this.selectedQuestionIndex,});
+
+  @override
+  _TestQuestionsScreenState createState() => _TestQuestionsScreenState();
+}
+
+class _TestQuestionsScreenState extends State<TestQuestionsScreen> {
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +55,16 @@ class TestQuestionsScreen extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const TestScreen(),
+                    builder: (context) => TestScreen(
+                      chapterId: widget.chapterId,
+                      lessonId: widget.lessonId,
+                      subjectName: widget.subjectName,
+                      subjectId: widget.subjectId,
+                      testId: widget.testId,
+                      totalTime: widget.totalTime,
+                      topicId: widget.topicId,
+                      selectedQuestionIndex: widget.selectedQuestionIndex,
+                    ),
                   ),
                 );
               },
@@ -35,10 +75,12 @@ class TestQuestionsScreen extends StatelessWidget {
             'QUESTIONS',
             style: TextStyle(
               color: Colors.black,
-              fontSize: 18, // Ensure the title text color is visible
+              fontSize: 18,
             ),
           ),
-          const SizedBox(width: 160,),
+          const SizedBox(
+            width: 160,
+          ),
         ],
       ),
       body: Padding(
@@ -57,62 +99,76 @@ class TestQuestionsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 28),
             Expanded(
-              child: ListView.builder(
-                itemCount: 7,
-                itemBuilder: (context, index) {
-                  final questionText = [
-                    "Where is the majority of ATP’s energy stored?",
-                    "How much energy is potentially released from an ATP molecule?",
-                    "ATP formation is best described by which of the following statements?",
-                    "Formation is best described by which of the following statements?",
-                    "Which of the following statements about photosynthesis is FALSE?",
-                    "How does photosynthesis occur?",
-                    "Which of the following is a TRUE statement regarding the energy-fixing reactions of photosynthesis?"
-                  ][index];
-                  final isAttempted =
-                      [true, true, false, true, true, false, true][index];
-                  return Padding(
-                    padding: const EdgeInsets.only(
-                        bottom: 30.0), // Increased vertical spacing
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const TestScreen(),
-                          ),
-                        );
-                      },
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${index + 1}.',
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: isAttempted ? Colors.blue : Colors.black,
-                              fontWeight: isAttempted
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                          const SizedBox(width: 15),
-                          Flexible(
-                            child: Text(
-                              questionText,
-                              textAlign: TextAlign.start,
-                              style: TextStyle(
-                                fontSize: 21,
-                                color: isAttempted ? Colors.blue : Colors.black,
-                                fontWeight: isAttempted
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
+              child: Consumer<TestScreenProvider>(
+                builder: (context, provider, child) {
+                  if (provider.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (provider.errorMessage.isNotEmpty) {
+                    return Center(child: Text(provider.errorMessage));
+                  }
+
+                  return ListView.builder(
+                    itemCount: provider.questionStatements.length,
+                    itemBuilder: (context, index) {
+                      final questionText = provider.questionStatements[index];
+                      bool isAttempted = provider.isAttempted(index);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 30.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TestScreen(
+                                  topicId: widget.topicId,
+                                  chapterId: widget.chapterId,
+                                  lessonId: widget.lessonId,
+                                  testId: widget.testId,
+                                  totalTime: widget.totalTime,
+                                  subjectName: widget.subjectName,
+                                  subjectId: widget.subjectId,
+                                  selectedQuestionIndex: index,
+                                ),
                               ),
-                            ),
+                            );
+                          },
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${index + 1}.',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  color:
+                                      isAttempted ? Colors.blue : Colors.black,
+                                  fontWeight: isAttempted
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                              const SizedBox(width: 15),
+                              Flexible(
+                                child: Text(
+                                  questionText,
+                                  textAlign: TextAlign.start,
+                                  style: TextStyle(
+                                    fontSize: 21,
+                                    color: isAttempted
+                                        ? Colors.blue
+                                        : Colors.black,
+                                    fontWeight: isAttempted
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),

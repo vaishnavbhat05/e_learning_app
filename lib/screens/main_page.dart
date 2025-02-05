@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:e_learning_app/screens/profile/profile_screen.dart';
 import 'package:e_learning_app/screens/profile/provider/profile_provider.dart';
 import 'package:e_learning_app/screens/subjects/subject_screen.dart';
-import 'home/home_screen.dart'; // Import the SubjectProvider
+import 'home/home_screen.dart';
 
 class MainPage extends StatefulWidget {
   final int? id;
@@ -19,7 +19,7 @@ class _MainPageState extends State<MainPage> {
   int currentIndex = 0;
   final screens = [
     const HomeScreen(),
-    SubjectsScreen(),
+    const SubjectsScreen(),
     const ProfileScreen(),
   ];
 
@@ -54,15 +54,13 @@ class _MainPageState extends State<MainPage> {
             });
 
             if (index == 1) {
-              // Trigger subject data fetch when HomeScreen is selected
               final subjectProvider = Provider.of<SubjectProvider>(context, listen: false);
               subjectProvider.fetchSubjects();
             }
 
             if (index == 2) {
-              // Trigger profile data fetch when ProfileScreen is selected
               final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
-              profileProvider.fetchProfile(widget.id ?? 0); // Assuming the user ID is passed
+              profileProvider.fetchProfile(widget.id ?? 0);
             }
           },
           selectedItemColor: Colors.blue,

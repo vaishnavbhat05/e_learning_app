@@ -1,8 +1,8 @@
 import 'package:e_learning_app/data/api/endpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../data/model/subject.dart'; // Import the SubjectModel
-import '../../../data/api/api_handler.dart'; // Import ApiHandler
+import '../../../data/model/subject.dart';
+import '../../../data/api/api_handler.dart';
 
 class SubjectProvider extends ChangeNotifier {
   List<SubjectModel> _subjects = [];
@@ -12,8 +12,6 @@ class SubjectProvider extends ChangeNotifier {
   List<SubjectModel> get subjects => _subjects;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-
-  // Function to fetch subjects
   Future<void> fetchSubjects() async {
     _isLoading = true;
     _errorMessage = null;
@@ -31,14 +29,19 @@ class SubjectProvider extends ChangeNotifier {
         notifyListeners();
         return;
       }
+
+
       final responseBody = await apiHandler.getRequest(
         Endpoints.subjects,
         headers: {'Authorization': 'Bearer $accessToken'},
       );
-      // If the response is successful, update the subjects list
+
       if (responseBody != null && responseBody['status'] == 0) {
         List<dynamic> subjectsList = responseBody['data']['subjects'];
         _subjects = subjectsList.map((subject) => SubjectModel.fromJson(subject)).toList();
+
+        if (_subjects.isNotEmpty) {
+        }
       } else {
         _errorMessage = responseBody['message'] ?? 'Failed to load subjects.';
       }

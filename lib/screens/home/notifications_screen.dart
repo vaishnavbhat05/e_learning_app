@@ -20,26 +20,23 @@ class NotificationsScreen extends StatelessWidget {
           automaticallyImplyLeading: false,
           backgroundColor: Colors.transparent,
           actions: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 10),
-              child: IconButton(
-                onPressed: () {Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => MainPage()),
-                );},
-                icon: const Icon(
-                  Icons.arrow_back,
-                  color: Colors.blue,
-                  size: 30,
-                ),
+            IconButton(
+              onPressed: () {Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => MainPage()),
+              );},
+              icon: const Icon(
+                Icons.arrow_back,
+                color: Colors.blue,
+                size: 30,
               ),
             ),
             const Spacer(),
           ],
         ),
         body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20), // Padding around the body content
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

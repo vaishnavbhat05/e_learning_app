@@ -5,7 +5,8 @@ import '../../core/utils/validator.dart';
 import '../login/login_screen.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({
+
+  ForgotPasswordScreen({
     super.key,
   });
 
@@ -14,6 +15,9 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  String? userName;
+  String? email;
+  String? password;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
@@ -35,6 +39,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     _confirmPasswordFocus.dispose();
     super.dispose();
   }
+
 
   void _validateForm() {
     setState(() {
@@ -170,7 +175,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                           context,
                                           MaterialPageRoute(
                                               builder: (context) =>
-                                                  const VerifyAccountScreen()));
+                                                  VerifyAccountScreen(userName: userName!,email: email!,password: password!,)));
                                     }
                                   : null,
                               child: Container(

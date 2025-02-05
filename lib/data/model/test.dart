@@ -32,7 +32,7 @@ class TestModel {
       totalTime: json['totalTime'],
       lessonName: json['lessonName'],
       subHeading: json['subHeading'],
-      totalNumberOfQuestions: json['totalNumberOfQuestions'], // Note the correct field name
+      totalNumberOfQuestions: json['totalNumberOfQuestions'],
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
     );

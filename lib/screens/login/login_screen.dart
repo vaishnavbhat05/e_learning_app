@@ -3,6 +3,7 @@ import 'package:e_learning_app/screens/login/provider/login_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../data/model/login.dart';
+import '../profile/provider/profile_provider.dart';
 import '../register/register_screen.dart';
 import '../../common_widgets/custom_text_field.dart';
 
@@ -12,6 +13,7 @@ class LoginScreen extends StatefulWidget {
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
+
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -23,8 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false;
   final _formKey = GlobalKey<FormState>();
 
-  bool _isLoading = false; // Track loading state
-
+  bool _isLoading = false;
   void _validateForm() {
     setState(() {
       _isFormValid = _formKey.currentState?.validate() ?? false;
@@ -112,26 +113,32 @@ class _LoginScreenState extends State<LoginScreen> {
                             GestureDetector(
                               onTap: _isFormValid && !_isLoading
                                   ? () async {
-                                setState(() {
-                                  _isLoading = true; // Show loading indicator
-                                });
+                                      setState(() {
+                                        _isLoading = true;
+                                      });
 
-                                // Create LoginModel
-                                final loginModel = Login(
-                                  email: _emailController.text,
-                                  password: _passwordController.text,
-                                );
+                                      // Create LoginModel
+                                      final loginModel = Login(
+                                        email: _emailController.text,
+                                        password: _passwordController.text,
+                                      );
 
-                                // Call loginUser API
-                                await context.read<LoginProvider>().loginUser(
-                                  loginModel,
-                                  context,
-                                );
-
-                                setState(() {
-                                  _isLoading = false; // Hide loading indicator
-                                });
-                              }
+                                      await context
+                                          .read<LoginProvider>()
+                                          .loginUser(
+                                            loginModel,
+                                            context,
+                                          );
+                                      setState(() {
+                                        _isLoading = false;
+                                      });
+                                      final profileProvider =
+                                          Provider.of<ProfileProvider>(context,
+                                              listen: false);
+                                      final profile = profileProvider.profile;
+                                      await profileProvider
+                                          .fetchProfile(profile?.id ?? 0);
+                                    }
                                   : null,
                               child: Container(
                                 height: 90,
@@ -144,19 +151,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 child: _isLoading
                                     ? const Center(
-                                  child: CircularProgressIndicator(
-                                    valueColor:
-                                    AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
-                                  ),
-                                )
+                                        child: CircularProgressIndicator(
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  Colors.white),
+                                        ),
+                                      )
                                     : const Center(
-                                  child: Icon(
-                                    Icons.arrow_right_alt_outlined,
-                                    size: 60,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                                        child: Icon(
+                                          Icons.arrow_right_alt_outlined,
+                                          size: 60,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                               ),
                             ),
                           ],
@@ -168,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
-                                    const ForgotPasswordScreen()));
+                                        ForgotPasswordScreen()));
                           },
                           child: const Text(
                             "Forgot Password",

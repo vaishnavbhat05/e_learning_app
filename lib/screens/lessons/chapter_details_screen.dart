@@ -1,16 +1,30 @@
 import 'dart:math';
-
-import 'package:e_learning_app/screens/lessons/provider/lesson_test_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/model/lesson.dart';
 import '../../data/model/test.dart';
 import '../chapters/chapter_screen.dart';
+import '../chapters/provider/chapter_provider.dart';
 import '../tests/provider/test_screen_provider.dart';
 import '../tests/test_screen.dart';
 import 'lesson_details_screen.dart';
 
 class ChapterDetailsScreen extends StatefulWidget {
-  const ChapterDetailsScreen({super.key});
+  final int subjectId;
+  final String subjectName;
+  final int lessonId;
+  final int chapterId;
+  final int topicId;
+
+  const ChapterDetailsScreen({
+    super.key,
+    required this.subjectId,
+    required this.subjectName,
+    required this.chapterId,
+    required this.lessonId,
+    required this.topicId,
+  });
 
   @override
   _ChapterDetailsScreenState createState() => _ChapterDetailsScreenState();
@@ -18,9 +32,17 @@ class ChapterDetailsScreen extends StatefulWidget {
 
 class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
   bool showLessons = true;
-  int lessonId = 1;
-  // int testId = 1;
+  bool isLoading = false;
 
+
+  Future<void> _refreshContent() async {
+    await Provider.of<ChapterProvider>(context, listen: false)
+        .fetchLessonDetails(widget.chapterId,widget.lessonId);
+    if (!showLessons) {
+      await Provider.of<ChapterProvider>(context, listen: false)
+          .fetchTests(widget.lessonId);
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,91 +51,122 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
         backgroundColor: Colors.grey[100],
         elevation: 0,
         centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-          child: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.blue,
-              size: 30,
-            ),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ChapterScreen(),
-                ),
-              );
-            },
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.blue,
+            size: 30,
           ),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChapterScreen(
+                  subjectId: widget.subjectId,
+                  subjectName: widget.subjectName,
+                ),
+                settings: RouteSettings(
+                  arguments: widget.chapterId,
+                ),
+              ),
+            );
+          },
         ),
-        title: const Text(
-          "INTRODUCTION TO BIOLOGY",
-          style: TextStyle(
+        title: Text(
+          widget.subjectName.toUpperCase(),
+          style: const TextStyle(
             color: Colors.black,
-            fontSize: 18,
+            fontSize: 20,
           ),
         ),
       ),
-      body: Center(
-        child: Column(
-          children: [
-            const SizedBox(
-              height: 20,
-            ),
-            const Text(
-              'Animal Nutrition:',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            const Text(
-              'Food Chain',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            const Text(
-              'Lesson 1',
-              style: TextStyle(fontSize: 18, color: Colors.grey),
-            ),
-            const SizedBox(
-              height: 50,
-            ),
-            Container(
-              height: 50,
-              width: 370, // Ensure it takes full width or adjust as needed
-              decoration: BoxDecoration(
-                color: Colors.white, // Background color for the container
-                borderRadius: BorderRadius.circular(18),
+      body: Consumer<ChapterProvider>(
+        builder: (context, provider, child) {
+
+          var lessons = provider.lessons;
+
+          if (lessons.isEmpty) {
+            return const Center(child: Text('No lessons available.'));
+          }
+
+          var lesson = lessons.firstWhere(
+                (lesson) => lesson.lessonId == widget.lessonId,
+            orElse: () => lessons.first,
+          );
+
+          return RefreshIndicator(
+            onRefresh: _refreshContent,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    Text(
+                      lesson.lessonName,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      softWrap: true,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Lesson ${lesson.lessonIndex}',
+                      style: const TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 50),
+                    Container(
+                      height: 50,
+                      width: 370,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildTab("LESSONS", showLessons, () {
+                            setState(() {
+                              showLessons = true;
+                            });
+                          }),
+                          const VerticalDivider(
+                            color: Colors.grey,
+                            width: 100,
+                            thickness: 0.2,
+                          ),
+                          _buildTab("TESTS", !showLessons, () {
+                            setState(() {
+                              showLessons = false;
+                            });
+                            Provider.of<ChapterProvider>(context, listen: false)
+                                .fetchTests(
+                                    lesson.lessonId);
+                          }),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    Expanded(
+                      child: showLessons
+                          ? provider.isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : _buildLessonsContent(lesson.topics)
+                          : provider.isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : _buildTestsContent(),
+                    ),
+
+                  ],
+                ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildTab("LESSONS", showLessons, () {
-                    setState(() {
-                      showLessons = true; // Show lessons
-                    });
-                  }),
-                  const VerticalDivider(
-                    color: Colors.grey, // Divider color
-                    width: 100, // Width of the divider
-                    thickness: 0.2, // Divider thickness
-                  ),
-                  _buildTab("TESTS", !showLessons, () {
-                    setState(() {
-                      showLessons = false; // Show tests
-                    });
-                    // Trigger API call when "TESTS" is selected
-                    Provider.of<LessonTestProvider>(context, listen: false)
-                        .fetchTests(lessonId); // Pass the lessonId here
-                  }),
-                ],
-              ),
             ),
-            const SizedBox(height: 30),
-            Expanded(
-              child:
-                  showLessons ? _buildLessonsContent() : _buildTestsContent(),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -142,76 +195,83 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
     );
   }
 
-  Widget _buildLessonsContent() {
-    return ListView(
-      children: [
-        _buildLessonCard(
-          "Food Substances",
-          "Classes and sources.",
-          Colors.yellow.shade300,
-          "BEGINNER",
-        ),
-        _buildLessonCard(
-          "Balanced Diet",
-          "Sources of food substance.",
-          Colors.red.shade300,
-          "INTERMEDIATE",
-        ),
-        _buildLessonCard(
-          "Food Test",
-          "Malnutrition and its effects.",
-          Colors.blue.shade300,
-          "BEGINNER",
-        ),
-        _buildLessonCard(
-          "Digestive Enzymes",
-          "Effects of pH, temperature.",
-          Colors.green.shade300,
-          "BEGINNER",
-        ),
-      ],
+  Widget _buildLessonsContent(List<Topic> topics) {
+    return ListView.builder(
+      itemCount: topics.length,
+      itemBuilder: (context, index) {
+        var topic = topics[index];
+        Random random = Random(index);
+        Color randomColor = Color.fromARGB(
+          255,
+          random.nextInt(150) + 50,
+          random.nextInt(150) + 50,
+          random.nextInt(150) + 50,
+        );
+
+        return _buildLessonCard(
+          topic.heading,
+          topic.subHeading,
+          randomColor,
+          topic.level ?? "BEGINNER",
+          topic,
+          topic.pageStartsFrom ?? 1,
+        );
+      },
     );
   }
 
+
   Widget _buildLessonCard(
-      String title, String description, Color color, String level) {
+      String title, String description, Color color, String level,Topic topic, int pageStartsFrom) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => LessonDetailScreen(title: title),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+        onTap: () async {
+          Provider.of<ChapterProvider>(context, listen: false)
+              .fetchLessonTopics(widget.topicId, widget.lessonId, pageStartsFrom)
+              .then((_) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LessonDetailScreen(
+                  chapterId: widget.chapterId,
+                  lessonId: widget.lessonId,
+                  subjectId: widget.subjectId,
+                  subjectName: widget.subjectName,
+                  topicId: topic.topicId,
+                  pageStartsFrom: pageStartsFrom,
+                  topicLevel: level
+                ),
+              ),
+            );
+          });
+        },
+        child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 20.0),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20), // Rounded corners
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Colors.white, // Light border color
+            color: Colors.white,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.shade200, // Subtle shadow color
-              blurRadius: 8, // Slight blur for shadow
-              offset: const Offset(0, 4), // Shadow offset
+              color: Colors.grey.shade200,
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Container(
           padding: const EdgeInsets.symmetric(
-              vertical: 30,
-              horizontal: 20), // Increased padding inside the card
+              vertical: 20,
+              horizontal: 20),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
-                radius: 30, // Increased size of the avatar
+                radius: 30,
                 backgroundColor: color,
                 child: const Icon(Icons.eco,
-                    color: Colors.white, size: 32), // Larger icon
+                    color: Colors.white, size: 32),
               ),
               const SizedBox(width: 20),
               Expanded(
@@ -222,28 +282,28 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            text: '$level\n\n', // Display the level first
+                            text: '$level\n\n',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16, // Larger font size for level
-                              color: Colors.blue, // Level in blue color
+                              fontSize: 16,
+                              color: Colors.blue,
                             ),
                           ),
                           TextSpan(
-                            text: title, // Display the title below
+                            text: title,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 22, // Larger font size for title
-                              color: Colors.black, // Title in black color
+                              fontSize: 22,
+                              color: Colors.black,
                             ),
                           ),
                         ],
                       ),
-                    ), // Increased space between title and description
+                    ),
                     Text(
                       description,
                       style: const TextStyle(
-                        fontSize: 18, // Larger font size for description
+                        fontSize: 18,
                         color: Colors.grey,
                       ),
                     ),
@@ -258,7 +318,7 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
   }
 
   Widget _buildTestsContent() {
-    return Consumer<LessonTestProvider>(
+    return Consumer<ChapterProvider>(
       builder: (context, provider, child) {
         if (provider.isLoading) {
           return const Center(child: CircularProgressIndicator());
@@ -273,20 +333,21 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
           itemBuilder: (context, index) {
             final test = provider.tests[index];
             Random random =
-                Random(index); // Use index to fix the color for each item
+                Random(index);
             Color randomColor = Color.fromARGB(
               255,
-              random.nextInt(150) + 50, // Random Red value (0-255)
-              random.nextInt(150) + 50, // Random Green value (0-255)
-              random.nextInt(150) + 50, // Random Blue value (0-255)
+              random.nextInt(150) + 50,
+              random.nextInt(150) + 50,
+              random.nextInt(150) + 50,
             );
 
             return _buildTestCard(
+              test,
               test.level,
               test.heading,
               test.subHeading,
               "${test.totalTime} minutes to complete",
-              randomColor, // Pass the fixed random color
+              randomColor,
               true,
             );
           },
@@ -294,118 +355,170 @@ class _ChapterDetailsScreenState extends State<ChapterDetailsScreen> {
       },
     );
   }
+  Map<int, bool> loadingTests = {};
 
-  Widget _buildTestCard(String level, String title, String subtitle,
-      String testDescription, Color color, bool isCurrentContent) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 30),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20), // Rounded corners
-        border: Border.all(
-          color: Colors.white, // Light border color
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade200, // Subtle shadow color
-            blurRadius: 8, // Slight blur for shadow
-            offset: const Offset(0, 4), // Shadow offset
+  void _startLoading(int testId) {
+    setState(() {
+      loadingTests[testId] = true;
+    });
+  }
+
+  void _stopLoading(int testId) {
+    setState(() {
+      loadingTests[testId] = false;
+    });
+  }
+
+  Widget _buildTestCard(
+      TestModel test,
+      String level,
+      String title,
+      String subtitle,
+      String testDescription,
+      Color color,
+      bool isCurrentContent) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 30),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.shade200,
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-            vertical: 20, horizontal: 20), // Padding inside the card
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundColor: color,
-                  radius: 35,
-                  child: const Icon(Icons.eco,
-                      color: Colors.white, size: 32), // Icon
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        level,
-                        style: const TextStyle(
-                            color: Colors.blue,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: color,
+                      radius: 35,
+                      child: const Icon(Icons.eco, color: Colors.white, size: 32),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            level,
+                            style: const TextStyle(
+                                color: Colors.blue,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.grey, fontSize: 18),
+                  textAlign: TextAlign.start,
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  height: 60,
+                  width: 320,
+                  child: Material(
+                    shadowColor: Colors.blue[300],
+                    borderRadius: BorderRadius.circular(10),
+                    child: OutlinedButton(
+                      onPressed: () async {
+                        if (loadingTests[test.id] == true) return;
+
+                        _startLoading(test.id);
+                        SharedPreferences prefs = await SharedPreferences.getInstance();
+                        await prefs.setInt('testId', test.id);
+                        await prefs.remove('remainingTime');
+                        await prefs.remove('isTimeout');
+                        await prefs.setInt('totalTime', test.totalTime);
+
+                        try {
+                          await Provider.of<TestScreenProvider>(context, listen: false)
+                              .fetchTestData(test.id);
+                          Provider.of<TestScreenProvider>(context,listen: false).clearSelections();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TestScreen(
+                                topicId: widget.topicId,
+                                chapterId: widget.chapterId,
+                                lessonId: widget.lessonId,
+                                testId: test.id,
+                                totalTime: test.totalTime,
+                                subjectName: widget.subjectName,
+                                subjectId: widget.subjectId,
+                                selectedQuestionIndex: 0,
+                              ),
+                            ),
+                          );
+                        } catch (e) {
+                          print("Error: $e");
+                        } finally {
+                          _stopLoading(test.id);
+                        }
+                      },
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                    ],
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          const SizedBox(width: 80),
+                          const Text(
+                            'Begin Test',
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                          const SizedBox(width: 70),
+                          CircleAvatar(
+                            backgroundColor: Colors.blue[700],
+                            radius: 12,
+                            child: const Icon(Icons.arrow_right_alt_sharp, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            // Subtitle in the middle
-            Text(
-              subtitle,
-              style: const TextStyle(color: Colors.grey, fontSize: 18),
-              textAlign: TextAlign.start,
-            ),
-            const SizedBox(height: 20),
-            // Button at the bottom
-            SizedBox(
-              height: 60,
-              width: 320,
-              child: Material(
-                shadowColor: Colors.blue[300],
-                borderRadius: BorderRadius.circular(10),
-                child: OutlinedButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const TestScreen(), // Pass testId here
-                      ),
-                    );
-                    Provider.of<TestScreenProvider>(context, listen: false)
-                        .fetchTestData(1); // Fetch data for testId 1
-                  },
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      const SizedBox(width: 90),
-                      const Text(
-                        'Begin Test',
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                      const SizedBox(width: 70),
-                      CircleAvatar(
-                        backgroundColor: Colors.blue[700],
-                        radius: 12,
-                        child: const Icon(Icons.arrow_right_alt_sharp, color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+        // Show loading only for this test
+        if (loadingTests[test.id] == true)
+          const Center(
+            child: CircularProgressIndicator(
+              color: Colors.blue,
+            ),
+          ),
+      ],
     );
   }
 }

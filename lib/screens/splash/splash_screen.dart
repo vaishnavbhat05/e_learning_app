@@ -32,14 +32,11 @@ class _SplashScreenState extends State<SplashScreen>
     bool isOnboarded = prefs.getBool('isOnboarded') ?? false;
     Future.delayed(const Duration(seconds: 3), () {
       if (isOnboarded) {
-        // Navigate to HomeScreen if onboarding is already completed
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
       } else {
-        // Otherwise, navigate to Onboarding screen
-
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const OnBoardingScreen()),

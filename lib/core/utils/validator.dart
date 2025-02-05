@@ -19,7 +19,7 @@ class Validator {
 
   static final password = MultiValidator([
     RequiredValidator(errorText: "Please enter your password"),
-    PatternValidator(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', errorText: "Enter a valid password"),
+    PatternValidator(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$', errorText: "Enter a valid password"),
   ]);
 
   static String? confirmPassword(
